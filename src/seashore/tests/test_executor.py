@@ -66,6 +66,6 @@ class ExecutorTest(unittest.TestCase):
         output, error = self.executor.command(['echo', 'hello']).batch()
         self.assertEquals(output, 'hello\n')
 
-    def test_command(self):
+    def test_pip_install(self):
         output, error = self.executor.pip_install(['attrs'])
         self.assertEquals(output, 'attrs installed')
