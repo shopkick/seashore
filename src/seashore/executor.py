@@ -73,7 +73,7 @@ class _ExecutoredCommand(object):
     _name = attr.ib()
 
     def __call__(self, *args, **kwargs):
-        return self.executor.prepare(*args, **kwargs)
+        return self._executor.prepare(self._name, *args, **kwargs)
 
     def __getattr__(self, subcommand):
         return functools.partial(self._executor.prepare, self._name, subcommand)
