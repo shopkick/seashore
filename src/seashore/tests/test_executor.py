@@ -51,6 +51,17 @@ class DummyShell(object):
             return 'numpy installed', ''
         raise ValueError(self, args, kwargs)
 
+    def interactive(self, *args, **kwargs):
+        if args == (['python'],):
+            return
+        raise ValueError(self, args, kwargs)
+
+    def popen(self, *args, **kwargs):
+        if args == (['grep', 'foo'],):
+            return
+        raise ValueError(self, args, kwargs)
+
+
 class ExecutorTest(unittest.TestCase):
 
     def setUp(self):
@@ -88,3 +99,9 @@ class ExecutorTest(unittest.TestCase):
     def test_conda_install(self):
         output, error = self.executor.conda_install(['numpy'])
         self.assertEquals(output, 'numpy installed')
+
+    def test_interactive(self):
+        self.executor.command(['python']).interactive()
+
+    def test_popen(self):
+        proc = self.executor.command(['grep', 'foo']).popen()
