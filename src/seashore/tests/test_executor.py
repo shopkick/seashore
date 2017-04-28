@@ -34,6 +34,8 @@ class DummyShell(object):
             return 'hello\r\n', ''
         if args == ('pip install attrs'.split(),):
             return 'attrs installed', ''
+        if args == ('apt-get update'.split(),):
+            return 'update finished successfully', ''
         raise ValueError(self, args, kwargs)
 
 class ExecutorTest(unittest.TestCase):
@@ -52,3 +54,8 @@ class ExecutorTest(unittest.TestCase):
     def test_call(self):
         output, error = self.executor.pip('install', 'attrs').batch()
         self.assertEquals(output, 'attrs installed')
+
+    def test_arbitrary(self):
+        self.executor.add_command('apt_get')
+        output, error = self.executor.apt_get.update().batch()
+        self.assertEquals(output, 'update finished successfully')
