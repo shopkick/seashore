@@ -38,6 +38,13 @@ class DummyShell(object):
             return 'update finished successfully', ''
         if args == ('echo hello'.split(),):
             return 'hello\n', ''
+        if (len(args) == 1 and args[0][:2] == 'pip install'.split() and
+            args[0][-1] =='attrs' and
+            '--trusted-host' in args[0] and
+            args[0][args[0].index('--trusted-host')+1] == 'orbifold.xyz' and
+            '--extra-index-url' in args[0] and
+            args[0][args[0].index('--extra-index-url')+1] == 'http://orbifold.xyz'):
+            return 'attrs installed', ''
         raise ValueError(self, args, kwargs)
 
 class ExecutorTest(unittest.TestCase):
@@ -68,4 +75,8 @@ class ExecutorTest(unittest.TestCase):
 
     def test_pip_install(self):
         output, error = self.executor.pip_install(['attrs'])
+        self.assertEquals(output, 'attrs installed')
+
+    def test_pip_install_index(self):
+        output, error = self.executor.pip_install(['attrs'], index_url='http://orbifold.xyz')
         self.assertEquals(output, 'attrs installed')
