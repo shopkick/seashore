@@ -36,6 +36,8 @@ class DummyShell(object):
             return 'attrs installed', ''
         if args == ('apt-get update'.split(),):
             return 'update finished successfully', ''
+        if args == ('echo hello'.split(),):
+            return 'hello\n', ''
         raise ValueError(self, args, kwargs)
 
 class ExecutorTest(unittest.TestCase):
@@ -59,3 +61,7 @@ class ExecutorTest(unittest.TestCase):
         self.executor.add_command('apt_get')
         output, error = self.executor.apt_get.update().batch()
         self.assertEquals(output, 'update finished successfully')
+
+    def test_command(self):
+        output, error = self.executor.command(['echo', 'hello']).batch()
+        self.assertEquals(output, 'hello\n')
