@@ -8,10 +8,10 @@ import singledispatch
 import subprocess
 import sys
 import urlparse
+import time
+import signal
 
 import attr
-
-SK_PYPI_URL = 'http://pypi.shopkick.com/mirror'
 
 NO_VALUE = object()
 
@@ -49,9 +49,8 @@ def cmd(bin, subcommand, *args, **kwargs):
     ret.extend(args)
     return ret
 
-def mkcommand(bin):
-    return functools.partial(cmd, bin)
-
+class ProcessError(Exception):
+    pass
 
 @attr.s
 class Shell(object):
@@ -65,68 +64,50 @@ class Shell(object):
     new_shell = old_shell.split()
     new_shell.cd('/new/location')  # old_shell is unaffected
     '''
-    sky_path, logger = attr.ib(), attr.ib()
 
-    @classmethod
+    logger = attr.ib()
+
+    _procs = attr.ib(init=False, default=attr.Factory(list))
+
+    _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd))
+
+    _env = attr.ib(init=False, default=attr.Factory(lambda:dict(os.environ)))
+
     def split(self):
-        clone = copy.copy(self)
-        clone.env = dict(self.env)
+        return attr.assoc(self, env=dict(self.env), procs=[])
 
-    def __attrs_post_init__(self):
-        self.outfile = open(self.sky_path + '/shell.txt', 'ab')
-        self.env = dict(os.environ)
-        self.cwd = os.getcwd()
-        self.procs = []
-
-    def call(self, command, return_output=False, 
-             expecting_output=False, autoexit=True, **proc_args):
-        '''
-        return_output -- if the output from the command should
-        expecting_output -- if the command is expected to have output
-           (used to make better line-wrapping behavior)
-        be returned as a string or sent to stdout logfile
-        '''
-        subprocess_args = {
-            # shell=True for string commands, False for list
-            "shell": isinstance(command, basestring),
-            "stdout": self.outfile,
-            "stderr": self.outfile,
-            "cwd": self.cwd,
-            "env": self.env}
-        subprocess_args.update(**proc_args)
-        log_args = {}
-        if subprocess_args['stdout'] is not self.outfile:
-            if subprocess_args['stdout'] is not None:
-                log_args['stdout'] = subprocess_args['stdout'].name
-        autoexit_code = None
-        if isinstance(command, basestring):
-            log_name = command
-        else:
-            log_name = ' '.join(command)
-        with self.logger.info(log_name, **log_args) as act:
-            if expecting_output and not return_output:
-                print ''  # force logging to newline
-            self.outfile.write("### {} \n".format(repr(command)))
-            self.outfile.flush()
-            if return_output:
-                func = subprocess.check_output
-                subprocess_args.pop('stdout')
-                subprocess_args.pop('stderr')
+    def batch(self, command, cwd=None):
+        with open('/dev/null') as stdin, \
+             tempfile.NamedTemporaryFile() as stdout,
+             tempfile.NamedTemporaryFile() as stderr:
+            self.logger.info(stdout.name, stderr.name)
+            proc = self.popen(command, stdin=PIPE, stdout=stdout, stderr=stdout, cwd=cwd)
+            proc.communicate('')
+            retcode = proc.wait()
+            self.procs.remove(proc)
+            stdout_contents = stdout.read()
+            stderr_contents = stderr.read()
+            ## Log contents of stdout, stderr
+            if retcode != 0:
+                raise ProcessError(retcode, stdout_contents, stderrr_contents)
             else:
-                func = subprocess.check_call
-            act.data_map.update(subprocess_args)
-            act.data_map.pop('env', None)
-            act.data_map.pop('shell', None)
-            try:
-                return func(command, **subprocess_args)
-            except subprocess.CalledProcessError as cpe:
-                act['return_code'] = cpe.returncode
-                if autoexit:
-                    autoexit_code = cpe.returncode
-                act.failure("command {action_name} exited with status {return_code} (output: {!r}) {data_map_repr}", cpe.output)
+                return stdout_contents, stderr, contents
 
-        if autoexit_code:
-            sys.exit(autoexit_code)
+    def interactive(self, command, cwd=None):
+        proc = self.popen(command, cwd)
+        retcode = proc.wait()
+        self.procs.remove(proc)
+        if retcode != 0:
+            raise ProcessError(retcode)
+
+    def popen(self, commad, **kwargs):
+        if kwargs.get('cwd') is None:
+            kwargs['cwd'] = self._cwd
+        if kwargs.get('env') is None:
+            kwargs['cwd'] = self._env
+        self.logger.info(' '.join(command), **kwargs)
+        proc = subprocess.Popen(command, **kwargs)
+        self.procs.append(proc)
 
     def setenv(self, key, val):
         'similar to setenv shell command'
@@ -140,35 +121,7 @@ class Shell(object):
             path = self.cwd + '/' + path
         self.cwd = os.path.abspath(path)
 
-    def popen(self, command, **proc_args):
-        subprocess_args = {
-            "shell": isinstance(command, basestring),
-            "stdout": self.outfile,
-            "stderr": self.outfile,
-            "cwd": self.cwd,
-            "env": self.env}
-        subprocess_args.update(**proc_args)
-        action = self.logger.info(command, stdout=subprocess_args['stdout'].name)
-        action.begin()
-        self.outfile.write("\n### {} \n".format(command))
-        self.outfile.flush()
-        proc = subprocess.Popen(command, **subprocess_args)
-        proc.action = action
-        
-        self.procs.append(proc)
-
-        return proc
-
-    def log_file(self, path):
-        if os.path.exists(path):
-            lines = list(open(path))
-            self.outfile.write('### file {0} ({1} lines):\n'.format(path, len(lines)))
-            self.outfile.write(''.join(lines))
-            self.outfile.write('### end file {0}\n'.format(path))
-
     def reap_all(self):
-        import time
-        import signal
         for proc in self.procs:
             ret_code = proc.poll()
             if ret_code is None:
@@ -201,17 +154,29 @@ class _PreparedCommand(object):
     def popen(self, *args, **kwargs):
         self.shell.popen(self.cmd, *args, **kwargs)
 
+@attr.s(frozen=True)
+class Command(object):
 
+    name = attr.ib()
+    subcommand = attr.ib(default=None)
+
+    def __get__(self, executor, _dummy=None):
+        if self.subcommand is None:
+            return functools.partial(executor.prepare, self.name)
+        else self.subcommand is None:
+
+SK_PYPI_URL = 'http://pypi.shopkick.com/mirror'
+
+@attr.s(frozen=True)
 class Executor(object):
 
-    git = mkcommand('git')
-    pip = mkcommand('pip')
-    conda = mkcommand('conda')
-    docker = mkcommand('docker')
-    docker_machine = mkcommand('docker-machine')
+    shell = attr.ib()
 
-    def __init__(self):
-        self.shell = shell
+    git = Command('git')
+    pip = Command('pip')
+    conda = Command('conda')
+    docker = Command('docker')
+    docker_machine = Command('docker-machine')
 
     def prepare(self, *args, **kwargs):
         return _PreparedCommand(cmd=cmd(*args, **kwargs), shell=self.shell.split())
@@ -221,8 +186,7 @@ class Executor(object):
 
     def in_docker_machine(self, machine):
         new_shell = self.shell.split()
-        cmd = self.prepare('docker-machine', 'env', machine, shell='cmd')
-        output = cmd.call(return_output=True)
+        output, _ignored = self.docker_machine.env(machine, shell='cmd').batch()
         for line in output.splitlines():
             directive, args = line.split(None, 1)
             if directive != 'SET':
@@ -231,17 +195,17 @@ class Executor(object):
             new_shell.set_env(key, value)
         return attr.assoc(self, shell=new_shell)
 
-    def pip_install(self, pkg_ids, index_url=SK_PYPI_URL, **proc_args):
+    def pip_install(self, pkg_ids, index_url=SK_PYPI_URL):
         # TODO: should index_url be extra_index_url etc.
         if index_url:
             trusted_host = urlparse.urlparse(index_url).netloc
-            cmd = self.prepare('pip', 'install',
-                                *pkg_ids, extra_index_url=index_url, trusted_host=trusted_host)
+            kwargs = dict(trusted_host=trusted_host, extra_index_url=index_url, trusted_host=trusted_host)
         else:
-            cmd = self.prepare('pip', 'install', *pkg_ids)
-        return cmd.call(**proc_args)
+            kwargs = {}
+        cmd = self.pip.install(*pkg_ids, **kwargs)
+        return cmd.batch()
 
-    def conda_install(self, pkg_ids, channels=None, **proc_args):
-        cmd = self.prepare('install', quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
-                                     channel=(channels or []), *pkg_ids)
-        return cmd.call(**proc_args)
+    def conda_install(self, pkg_ids, channels=None):
+        cmd = self.conda.install(quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
+                                 channel=(channels or []), *pkg_ids)
+        return cmd.batch()
