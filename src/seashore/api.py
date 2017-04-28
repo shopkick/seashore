@@ -75,17 +75,17 @@ class Shell(object):
         self._cwd = os.path.join(self._cwd, path)
 
     def reap_all(self):
-        for proc in self.procs:
+        for proc in self._procs:
             ret_code = proc.poll()
             if ret_code is None:
                 proc.send_signal(signal.SIGINT)
                 time.sleep(3)
             ret_code = ret_code or proc.poll()
-            if ret_code is None:
+            if ret_code is None: # pragma: no coverage
                 proc.terminate()
                 time.sleep(3)
-            ret_code = ret_code or proc.poll()
-            if ret_code is None:
+            ret_code = ret_code or proc.poll() # pragma: no coverage
+            if ret_code is None: # pragma: no coverage
                 proc.kill()
 
     def clone(self):

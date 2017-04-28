@@ -47,3 +47,9 @@ class ShellTest(unittest.TestCase):
         python_script = 'import sys,os;sys.stdout.write(os.getcwd())'
         out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, '/')
+
+    def test_reaper(self):
+        python_script = 'import time;time.sleep(100000)'
+        proc = self.shell.popen([sys.executable, '-c', python_script])
+        self.shell.reap_all()
+        self.assertLess(proc.wait(), 0)
