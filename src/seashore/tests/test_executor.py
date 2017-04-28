@@ -55,6 +55,8 @@ class DummyShell(object):
             set([args[0][3], args[0][5]]) == set(['SONG=awesome', 'SPECIAL=emett']) and
             args[0][-1] =='lego:1'):
             return 'everything', ''
+        if args == ('do-stuff special --verbosity 5'.split(),):
+            return 'doing stuff very specially', ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -115,3 +117,7 @@ class ExecutorTest(unittest.TestCase):
     def test_dict_keywords(self):
         output, err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett', SONG='awesome')).batch()
         self.assertEquals(output, 'everything')
+
+    def test_int(self):
+        output, err = self.executor.prepare('do-stuff', 'special', verbosity=5).batch()
+        self.assertEquals(output, 'doing stuff very specially')
