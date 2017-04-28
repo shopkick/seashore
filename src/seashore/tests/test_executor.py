@@ -57,6 +57,11 @@ class DummyShell(object):
             return 'everything', ''
         if args == ('do-stuff special --verbosity 5'.split(),):
             return 'doing stuff very specially', ''
+        if (len(args) == 1 and args[0][:2] == 'chat mention'.split() and
+            args[0][2] == '--person' and
+            args[0][4] == '--person' and
+            set([args[0][3], args[0][5]]) == set(['emett', 'lucy'])):
+            return 'mentioning folks', ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -121,3 +126,7 @@ class ExecutorTest(unittest.TestCase):
     def test_int(self):
         output, err = self.executor.prepare('do-stuff', 'special', verbosity=5).batch()
         self.assertEquals(output, 'doing stuff very specially')
+
+    def test_list(self):
+        output, err = self.executor.prepare('chat', 'mention', person=['emett', 'lucy']).batch()
+        self.assertEquals(output, 'mentioning folks')
