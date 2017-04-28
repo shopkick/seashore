@@ -35,3 +35,15 @@ class ShellTest(unittest.TestCase):
         python_script = "raise SystemExit(1)"
         with self.assertRaises(api.ProcessError):
             self.shell.interactive([sys.executable, '-c', python_script])
+
+    def test_env(self):
+        self.shell.setenv('SPECIAL', 'emett')
+        python_script = 'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
+        out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
+        self.assertEquals(out, 'emett')
+
+    def test_cd(self):
+        self.shell.cd('/')
+        python_script = 'import sys,os;sys.stdout.write(os.getcwd())'
+        out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
+        self.assertEquals(out, '/')

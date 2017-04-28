@@ -68,13 +68,11 @@ class Shell(object):
         'similar to setenv shell command'
         key = str(key)  # keys must be strings
         val = str(val)  # vals must be strings
-        self.env[key] = val
+        self._env[key] = val
 
     def cd(self, path):
         'similar to cd shell command'
-        if not os.path.isabs(path):
-            path = self.cwd + '/' + path
-        self.cwd = os.path.abspath(path)
+        self._cwd = os.path.join(self._cwd, path)
 
     def reap_all(self):
         for proc in self.procs:
@@ -89,7 +87,6 @@ class Shell(object):
             ret_code = ret_code or proc.poll()
             if ret_code is None:
                 proc.kill()
-
 
     def clone(self):
         return attr.assoc(self, env=dict(self.env), procs=[])
