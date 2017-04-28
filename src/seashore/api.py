@@ -89,7 +89,7 @@ class Shell(object):
                 proc.kill()
 
     def clone(self):
-        return attr.assoc(self, env=dict(self.env), procs=[])
+        return attr.assoc(self, _env=dict(self._env), _procs=[])
 
 
 """
