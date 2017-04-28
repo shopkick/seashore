@@ -3,7 +3,7 @@ import unittest
 
 import attr
 
-from seashore import api
+from seashore import shell
 
 @attr.s
 class DummyLogger(object):
@@ -18,7 +18,7 @@ class ShellTest(unittest.TestCase):
     def setUp(self):
         self.messages = []
         self.logger = DummyLogger(self.messages)
-        self.shell = api.Shell(self.logger)
+        self.shell = shell.Shell(self.logger)
 
     def test_batch(self):
         python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
@@ -28,12 +28,12 @@ class ShellTest(unittest.TestCase):
 
     def test_failed_batch(self):
         python_script = "raise SystemExit(1)"
-        with self.assertRaises(api.ProcessError):
+        with self.assertRaises(shell.ProcessError):
             self.shell.batch([sys.executable, '-c', python_script])
 
     def test_failed_interactive(self):
         python_script = "raise SystemExit(1)"
-        with self.assertRaises(api.ProcessError):
+        with self.assertRaises(shell.ProcessError):
             self.shell.interactive([sys.executable, '-c', python_script])
 
     def test_env(self):
