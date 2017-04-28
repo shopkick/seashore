@@ -9,60 +9,16 @@ import sys
 import urlparse
 import time
 import signal
+import tempfile
 
 import attr
 
-NO_VALUE = object()
-
-@singledispatch.singledispatch
-def _keyword_arguments(value, key):
-    yield key
-
-@_keyword_arguments.register(str)
-def _keyword_arguments_str(value, key):
-    yield key
-    yield value
-
-@_keyword_arguments.register(int)
-def _keyword_arguments_int(value, key):
-    yield key
-    yield str(value)
-
-@_keyword_arguments.register(list)
-def _keyword_arguments_list(value, key):
-    for thing in value:
-        yield key
-        yield thing
-
-@_keyword_arguments.register(dict)
-def _keyword_arguments_dict(value, key):
-    for in_k, thing in value.items():
-        yield key
-        yield '{}={}'.format(in_k, thing)
-
-def cmd(bin, subcommand, *args, **kwargs):
-    ret = [bin, subcommand]
-    for key, value in kwargs.items():
-        key = '--' + key.replace('_', '-')
-        ret.extend(keyword_arguments(value, key))
-    ret.extend(args)
-    return ret
 
 class ProcessError(Exception):
     pass
 
 @attr.s
 class Shell(object):
-    '''
-    Keeps track of some useful state, environment variables,
-    current working directory, logfiles.
-
-    To make changes without affecting the base shell object,
-    a new one can be constructed with the split() method.
-
-    new_shell = old_shell.split()
-    new_shell.cd('/new/location')  # old_shell is unaffected
-    '''
 
     logger = attr.ib()
 
@@ -72,25 +28,24 @@ class Shell(object):
 
     _env = attr.ib(init=False, default=attr.Factory(lambda:dict(os.environ)))
 
-    def split(self):
-        return attr.assoc(self, env=dict(self.env), procs=[])
-
     def batch(self, command, cwd=None):
         with open('/dev/null') as stdin, \
              tempfile.NamedTemporaryFile() as stdout, \
              tempfile.NamedTemporaryFile() as stderr:
             self.logger.info(stdout.name, stderr.name)
-            proc = self.popen(command, stdin=PIPE, stdout=stdout, stderr=stdout, cwd=cwd)
+            proc = self.popen(command, stdin=subprocess.PIPE, stdout=stdout, stderr=stderr, cwd=cwd)
             proc.communicate('')
             retcode = proc.wait()
-            self.procs.remove(proc)
+            self._procs.remove(proc)
+            stdout.seek(0)
+            stderr.seek(0)
             stdout_contents = stdout.read()
             stderr_contents = stderr.read()
             ## Log contents of stdout, stderr
             if retcode != 0:
-                raise ProcessError(retcode, stdout_contents, stderrr_contents)
+                raise ProcessError(retcode, stdout_contents, stderr_contents)
             else:
-                return stdout_contents, stderr, contents
+                return stdout_contents, stderr_contents
 
     def interactive(self, command, cwd=None):
         proc = self.popen(command, cwd)
@@ -99,14 +54,15 @@ class Shell(object):
         if retcode != 0:
             raise ProcessError(retcode)
 
-    def popen(self, commad, **kwargs):
+    def popen(self, command, **kwargs):
         if kwargs.get('cwd') is None:
             kwargs['cwd'] = self._cwd
         if kwargs.get('env') is None:
-            kwargs['cwd'] = self._env
+            kwargs['env'] = self._env
         self.logger.info(' '.join(command), **kwargs)
         proc = subprocess.Popen(command, **kwargs)
-        self.procs.append(proc)
+        self._procs.append(proc)
+        return proc
 
     def setenv(self, key, val):
         'similar to setenv shell command'
@@ -126,21 +82,20 @@ class Shell(object):
             if ret_code is None:
                 proc.send_signal(signal.SIGINT)
                 time.sleep(3)
+            ret_code = ret_code or proc.poll()
             if ret_code is None:
                 proc.terminate()
                 time.sleep(3)
-
             ret_code = ret_code or proc.poll()
             if ret_code is None:
-                import pdb;pdb.set_trace()
-                # proc.kill()
+                proc.kill()
 
-            if ret_code == 0:
-                proc.action.success()
-            else:
-                proc.action.failure()
-        return
 
+    def clone(self):
+        return attr.assoc(self, env=dict(self.env), procs=[])
+
+
+"""
 @attr.s(frozen=True)
 class _PreparedCommand(object):
 
@@ -208,3 +163,32 @@ class Executor(object):
         cmd = self.conda.install(quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
                                  channel=(channels or []), *pkg_ids)
         return cmd.batch()
+NO_VALUE = object()
+@singledispatch.singledispatch
+def _keyword_arguments(value, key):
+    yield key
+@_keyword_arguments.register(str)
+def _keyword_arguments_str(value, key):
+    yield key
+@_keyword_arguments.register(int)
+def _keyword_arguments_int(value, key):
+    yield key
+    yield str(value)
+@_keyword_arguments.register(list)
+def _keyword_arguments_list(value, key):
+    for thing in value:
+        yield key
+        yield thing
+@_keyword_arguments.register(dict)
+def _keyword_arguments_dict(value, key):
+    for in_k, thing in value.items():
+        yield key
+        yield '{}={}'.format(in_k, thing)
+def cmd(bin, subcommand, *args, **kwargs):
+    ret = [bin, subcommand]
+    for key, value in kwargs.items():
+        key = '--' + key.replace('_', '-')
+        ret.extend(keyword_arguments(value, key))
+    ret.extend(args)
+    return ret
+"""

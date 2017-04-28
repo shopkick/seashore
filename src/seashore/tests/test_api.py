@@ -1,3 +1,4 @@
+import sys
 import unittest
 
 import attr
@@ -19,5 +20,13 @@ class ShellTest(unittest.TestCase):
         self.logger = DummyLogger(self.messages)
         self.shell = api.Shell(self.logger)
 
-    def test_nothing(self):
-        pass
+    def test_batch(self):
+        python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
+        out, err = self.shell.batch([sys.executable, '-c', python_script])
+        self.assertEquals(out, 'hello')
+        self.assertEquals(err, 'goodbye')
+
+    def test_failed_batch(self):
+        python_script = "raise SystemExit(1)"
+        with self.assertRaises(api.ProcessError):
+            self.shell.batch([sys.executable, '-c', python_script])
