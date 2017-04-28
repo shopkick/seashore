@@ -49,6 +49,12 @@ class DummyShell(object):
             set(args[0][2:-1]) == set('--show-channel-urls --quiet --yes'.split()) and
             args[0][-1] =='numpy'):
             return 'numpy installed', ''
+        if (len(args) == 1 and args[0][:2] == 'docker run'.split() and
+            args[0][2] == '--env' and
+            args[0][4] == '--env' and
+            set([args[0][3], args[0][5]]) == set(['SONG=awesome', 'SPECIAL=emett']) and
+            args[0][-1] =='lego:1'):
+            return 'everything', ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -105,3 +111,7 @@ class ExecutorTest(unittest.TestCase):
 
     def test_popen(self):
         proc = self.executor.command(['grep', 'foo']).popen()
+
+    def test_dict_keywords(self):
+        output, err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett', SONG='awesome')).batch()
+        self.assertEquals(output, 'everything')
