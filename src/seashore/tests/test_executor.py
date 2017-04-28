@@ -44,7 +44,11 @@ class DummyShell(object):
             args[0][args[0].index('--trusted-host')+1] == 'orbifold.xyz' and
             '--extra-index-url' in args[0] and
             args[0][args[0].index('--extra-index-url')+1] == 'http://orbifold.xyz'):
-            return 'attrs installed', ''
+            return 'attrs installed from orbifold', ''
+        if (len(args) == 1 and args[0][:2] == 'conda install'.split() and
+            set(args[0][2:-1]) == set('--show-channel-urls --quiet --yes'.split()) and
+            args[0][-1] =='numpy'):
+            return 'numpy installed', ''
         raise ValueError(self, args, kwargs)
 
 class ExecutorTest(unittest.TestCase):
@@ -79,4 +83,8 @@ class ExecutorTest(unittest.TestCase):
 
     def test_pip_install_index(self):
         output, error = self.executor.pip_install(['attrs'], index_url='http://orbifold.xyz')
-        self.assertEquals(output, 'attrs installed')
+        self.assertEquals(output, 'attrs installed from orbifold')
+
+    def test_conda_install(self):
+        output, error = self.executor.conda_install(['numpy'])
+        self.assertEquals(output, 'numpy installed')
