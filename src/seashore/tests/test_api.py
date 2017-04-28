@@ -30,3 +30,8 @@ class ShellTest(unittest.TestCase):
         python_script = "raise SystemExit(1)"
         with self.assertRaises(api.ProcessError):
             self.shell.batch([sys.executable, '-c', python_script])
+
+    def test_failed_interactive(self):
+        python_script = "raise SystemExit(1)"
+        with self.assertRaises(api.ProcessError):
+            self.shell.interactive([sys.executable, '-c', python_script])

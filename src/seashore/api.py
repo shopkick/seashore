@@ -48,9 +48,9 @@ class Shell(object):
                 return stdout_contents, stderr_contents
 
     def interactive(self, command, cwd=None):
-        proc = self.popen(command, cwd)
+        proc = self.popen(command, cwd=cwd)
         retcode = proc.wait()
-        self.procs.remove(proc)
+        self._procs.remove(proc)
         if retcode != 0:
             raise ProcessError(retcode)
 
