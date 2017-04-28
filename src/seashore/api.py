@@ -2,7 +2,6 @@
 Provides API for executing commands against the shell.
 '''
 import copy
-import log
 import os
 import singledispatch
 import subprocess
@@ -78,7 +77,7 @@ class Shell(object):
 
     def batch(self, command, cwd=None):
         with open('/dev/null') as stdin, \
-             tempfile.NamedTemporaryFile() as stdout,
+             tempfile.NamedTemporaryFile() as stdout, \
              tempfile.NamedTemporaryFile() as stderr:
             self.logger.info(stdout.name, stderr.name)
             proc = self.popen(command, stdin=PIPE, stdout=stdout, stderr=stdout, cwd=cwd)
@@ -163,7 +162,7 @@ class Command(object):
     def __get__(self, executor, _dummy=None):
         if self.subcommand is None:
             return functools.partial(executor.prepare, self.name)
-        else self.subcommand is None:
+        # TODO else self.subcommand is None:
 
 SK_PYPI_URL = 'http://pypi.shopkick.com/mirror'
 
@@ -199,7 +198,7 @@ class Executor(object):
         # TODO: should index_url be extra_index_url etc.
         if index_url:
             trusted_host = urlparse.urlparse(index_url).netloc
-            kwargs = dict(trusted_host=trusted_host, extra_index_url=index_url, trusted_host=trusted_host)
+            kwargs = dict(extra_index_url=index_url, trusted_host=trusted_host)
         else:
             kwargs = {}
         cmd = self.pip.install(*pkg_ids, **kwargs)

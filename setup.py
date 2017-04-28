@@ -12,6 +12,7 @@ setuptools.setup(
     install_requires=[
         'incremental',
         'attrs',
+        'singledispatch',
     ],
     package_dir={"": "src"},
     packages=setuptools.find_packages('src'),

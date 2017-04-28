@@ -18,3 +18,6 @@ class ShellTest(unittest.TestCase):
         self.messages = []
         self.logger = DummyLogger(self.messages)
         self.shell = api.Shell(self.logger)
+
+    def test_nothing(self):
+        pass
