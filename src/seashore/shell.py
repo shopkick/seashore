@@ -21,8 +21,6 @@ class ProcessError(Exception):
 @attr.s
 class Shell(object):
 
-    logger = attr.ib()
-
     _procs = attr.ib(init=False, default=attr.Factory(list))
 
     _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd))
@@ -33,7 +31,6 @@ class Shell(object):
         with open('/dev/null') as stdin, \
              tempfile.NamedTemporaryFile() as stdout, \
              tempfile.NamedTemporaryFile() as stderr:
-            self.logger.info(stdout.name, stderr.name)
             proc = self.popen(command, stdin=subprocess.PIPE, stdout=stdout, stderr=stderr, cwd=cwd)
             proc.communicate('')
             retcode = proc.wait()
@@ -60,7 +57,6 @@ class Shell(object):
             kwargs['cwd'] = self._cwd
         if kwargs.get('env') is None:
             kwargs['env'] = self._env
-        self.logger.info(' '.join(command), **kwargs)
         proc = subprocess.Popen(command, **kwargs)
         self._procs.append(proc)
         return proc

@@ -16,9 +16,7 @@ class DummyLogger(object):
 class ShellTest(unittest.TestCase):
 
     def setUp(self):
-        self.messages = []
-        self.logger = DummyLogger(self.messages)
-        self.shell = shell.Shell(self.logger)
+        self.shell = shell.Shell()
 
     def test_batch(self):
         python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
