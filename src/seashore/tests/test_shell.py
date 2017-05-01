@@ -61,3 +61,14 @@ class ShellTest(unittest.TestCase):
         python_script = 'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, 'lucy')
+
+class AutoexitTest(unittest.TestCase):
+
+    def test_success(self):
+        with shell.autoexit_code():
+            pass
+
+    def test_failure(self):
+        with self.assertRaises(SystemExit):
+            with shell.autoexit_code():
+                raise shell.ProcessError(13)

@@ -2,6 +2,7 @@
 Provides API for executing commands against the shell.
 '''
 import copy
+import contextlib
 import os
 import singledispatch
 import subprocess
@@ -90,3 +91,10 @@ class Shell(object):
 
     def clone(self):
         return attr.assoc(self, _env=dict(self._env), _procs=[])
+
+@contextlib.contextmanager
+def autoexit_code():
+    try:
+        yield
+    except ProcessError as pe:
+        raise SystemExit(pe[0])
