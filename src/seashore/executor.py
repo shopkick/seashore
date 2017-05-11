@@ -199,6 +199,19 @@ class Executor(object):
             new_shell.setenv(key, value)
         return attr.assoc(self, _shell=new_shell)
 
+    def patch_env(self, **kwargs):
+        """
+        Return a new executor where the environment is patched with the given attributes
+
+        :param kwargs: new environment variables
+        :returns: new executor with a shell with a patched environment.
+        """
+        new_shell = self._shell.clone()
+        for key, value in kwargs.items():
+            new_shell.setenv(key, value)
+        return attr.assoc(self, _shell=new_shell)
+       
+
     def in_virtual_env(self, envpath):
         """
         Return an executor where all Python commands would point at a specific virtual environment.

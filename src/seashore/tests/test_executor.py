@@ -97,6 +97,10 @@ class ExecutorTest(unittest.TestCase):
         new_executor = self.executor.in_virtual_env('/appenv')
         output, err = new_executor.pip.install('a-local-package').batch()
         self.assertEquals(output, 'a-local-package installed')
+        new_executor_one = self.executor.patch_env(PATH='/bin')
+        new_executor_two = new_executor_one.in_virtual_env('/appenv')
+        output, err = new_executor_two.pip.install('a-local-package').batch()
+        self.assertEquals(output, 'a-local-package installed')
 
     def test_call(self):
         output, error = self.executor.pip('install', 'attrs').batch()
