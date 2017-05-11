@@ -15,6 +15,6 @@ src = os.environ['CI_PROJECT_DIR']
 os.mkdir(dst)
 subprocess.check_call(['cp', '-r', src + '/src', dst])
 subprocess.check_call(['cp', '-r', src + '/tox.ini', dst])
-subprocess.check_call(['docker', 'build', '-t', tag, '.'])
+subprocess.check_call(['docker', 'build', '-t', tag, docker_ctx])
 subprocess.check_call(['docker', 'rmi', tag])
 
