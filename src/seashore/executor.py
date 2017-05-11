@@ -125,7 +125,7 @@ class _ExecutoredCommand(object):
 class Executor(object):
 
     """
-    Executing commands.
+    Executes commands.
 
     Init parameters:
 
@@ -166,7 +166,7 @@ class Executor(object):
         Prepare a command (inspired by SQL statement preparation).
 
         :param command: name of command (e.g., :code:`apt-get`)
-        :param subcommand: name of command (e.g., :code:`install`)
+        :param subcommand: name of sub-command (e.g., :code:`install`)
         :param args: positional arguments
         :param kwargs: option arguments
         :returns: something that supports batch/interactive/popen
