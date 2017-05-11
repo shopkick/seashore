@@ -1,5 +1,7 @@
 '''
-Provides API for executing commands against the shell.
+Shell
+-----
+Running subprocesses with a shell-like interface.
 '''
 import copy
 import contextlib
@@ -14,12 +16,22 @@ import tempfile
 
 import attr
 
-
 class ProcessError(Exception):
-    pass
+    """
+    A process has exited with non-zero status.
+    """
 
 @attr.s
 class Shell(object):
+
+    """
+    Run subprocesses.
+
+    Init arguments:
+    
+    :param cwd: current working directory (default is process's current working directory)
+    :param env: environment variables dict (default is a copy of the process's environment)
+    """
 
     _procs = attr.ib(init=False, default=attr.Factory(list))
 
@@ -27,7 +39,16 @@ class Shell(object):
 
     _env = attr.ib(init=False, default=attr.Factory(lambda:dict(os.environ)))
 
+
     def batch(self, command, cwd=None):
+        """
+        Run a process, wait until it ends and return the output and error
+
+        :param command: list of arguments
+        :param cwd: current working directory (default is to use the internal working directory)
+        :returns: pair of standard output, standard error
+        :raises: :code:`ProcessError` with (return code, standard output, standard error)
+        """
         with open('/dev/null') as stdin, \
              tempfile.NamedTemporaryFile() as stdout, \
              tempfile.NamedTemporaryFile() as stderr:
@@ -46,6 +67,13 @@ class Shell(object):
                 return stdout_contents, stderr_contents
 
     def interactive(self, command, cwd=None):
+        """
+        Run a process, while its standard output and error go directly to ours.
+
+        :param command: list of arguments
+        :param cwd: current working directory (default is to use the internal working directory)
+        :raises: :code:`ProcessError` with (return code, standard output, standard error)
+        """
         proc = self.popen(command, cwd=cwd)
         retcode = proc.wait()
         self._procs.remove(proc)
@@ -53,6 +81,13 @@ class Shell(object):
             raise ProcessError(retcode)
 
     def popen(self, command, **kwargs):
+        """
+        Run a process, giving direct access to the :code:`subprocess.Popen` arguments.
+
+        :param command: list of arguments
+        :param kwargs: keyword arguments passed to :code:`subprocess.Popen`
+        :returns: a :code:`Process`
+        """
         if kwargs.get('cwd') is None:
             kwargs['cwd'] = self._cwd
         if kwargs.get('env') is None:
@@ -62,16 +97,38 @@ class Shell(object):
         return proc
 
     def setenv(self, key, val):
-        'similar to setenv shell command'
+        """
+        Set internal environment variable.
+
+        Changes internal environment in which subprocesses will be run.
+        Does not change the process's own environment.
+
+        :param key: name of variable
+        :param value: value of variable
+        """
         key = str(key)  # keys must be strings
         val = str(val)  # vals must be strings
         self._env[key] = val
 
     def cd(self, path):
-        'similar to cd shell command'
+        """
+        Change internal current working directory.
+
+        Changes internal directory in which subprocesses will be run.
+        Does not change the process's own current working directory.
+
+        :param path: new working directory
+        """
         self._cwd = os.path.join(self._cwd, path)
 
     def reap_all(self):
+        """
+        Kill, as gently as possible, all processes.
+
+        Loop through all processes and try to kill them with
+        a sequence of :code:`SIGINT`, :code:`SIGTERM` and
+        :code:`SIGKILL`.
+        """
         for proc in self._procs:
             ret_code = proc.poll()
             if ret_code is None:
@@ -86,10 +143,18 @@ class Shell(object):
                 proc.kill()
 
     def clone(self):
+        """
+        Clone the shell object.
+
+        :returns: a new Shell object with a copy of the environment dictionary
+        """
         return attr.assoc(self, _env=dict(self._env), _procs=[])
 
 @contextlib.contextmanager
 def autoexit_code():
+    """
+    Context manager that translates :code:`ProcessError` to immediate process exit.
+    """
     try:
         yield
     except ProcessError as pe:
