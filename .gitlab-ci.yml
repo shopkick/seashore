@@ -11,7 +11,6 @@ unit_test:
 manylinux_test:
   stage: test
   script:
-    - echo $CI_PROJECT_DIR
-    - docker run --rm -v $CI_PROJECT_DIR:/mnt/repo gitlab.internal.shopkick.com:5050/open-source/manylinux bash -c "/opt/python/cp27-cp27mu/bin/pip install tox && cd /mnt/repo && /opt/python/cp27-cp27mu/bin/tox -e p27-unit"
+    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py
   tags:
     - docker-shell    
