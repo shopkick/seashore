@@ -1,3 +1,11 @@
+"""
+Executor
+--------
+
+Construct command-line lists.
+
+:const:`NO_VALUE` -- indicate an option with no value (a boolean option)
+"""
 import functools
 import urlparse
 
@@ -34,6 +42,27 @@ def _keyword_arguments_dict(value, key):
         yield '{}={}'.format(in_k, thing)
 
 def cmd(bin, subcommand, *args, **kwargs):
+    """
+    Construct a command line for a "modern UNIX" command.
+
+    Modern UNIX command do a closely-related-set-of-things and do it well.
+    Examples include :code:`apt-get` or :code:`git`.
+
+    :param bin: the name of the command
+    :param subcommand: the subcommand used
+    :param args: positional arguments (put last)
+    :param kwargs: options
+    :returns: list of arguments that is suitable to be passed to :code:`subprocess.Popen` and friends.
+
+    When specifying options, the following assumptions are made:
+
+    * Option names begin with :code:`--` and any :code:`_` is assumed to be a :code:`-`
+    * If the value is :code:`NO_VALUE`, this is a "naked" option.
+    * If the value is a string or an int, these are presented as the value of the option.
+    * If the value is a list, the option will be repeated multiple times.
+    * If the value is a dict, the option will be repeated multiple times, and
+      its values will be :code:`<KEY>=<VALUE>`.
+    """
     ret = [bin, subcommand]
     for key, value in kwargs.items():
         key = '--' + key.replace('_', '-')
@@ -59,9 +88,15 @@ class _PreparedCommand(object):
 @attr.s(frozen=True)
 class Command(object):
 
+    """
+    Blah blah
+    """
     name = attr.ib()
 
     def bind(self, executor, _dummy=None):
+        """
+        Blah blah
+        """
         return _ExecutoredCommand(executor, self.name)
 
     __get__ = bind
@@ -82,9 +117,13 @@ class _ExecutoredCommand(object):
 @attr.s(frozen=True)
 class Executor(object):
 
-    shell = attr.ib()
+    """
+    Blah blah
+    """
+
+    _shell = attr.ib()
     pypi = attr.ib(default=None)
-    _commands = attr.ib(default=attr.Factory(set))
+    _commands = attr.ib(default=attr.Factory(set), convert=set)
 
     git = Command('git')
     pip = Command('pip')
@@ -99,15 +138,27 @@ class Executor(object):
         return Command(name).bind(self)
 
     def add_command(self, name):
+        """
+        Blah blah
+        """
         self._commands.add(name)
 
     def prepare(self, *args, **kwargs):
+        """
+        Blah blah
+        """
         return _PreparedCommand(cmd=cmd(*args, **kwargs), shell=self.shell.clone())
 
     def command(self, args):
+        """
+        Blah blah
+        """
         return _PreparedCommand(args, shell=self.shell.clone())
 
     def in_docker_machine(self, machine):
+        """
+        Blah blah
+        """
         new_shell = self.shell.clone()
         output, _ignored = self.docker_machine.env(machine, shell='cmd').batch()
         for line in output.splitlines():
@@ -118,11 +169,13 @@ class Executor(object):
             new_shell.setenv(key, value)
         return attr.assoc(self, shell=new_shell)
 
-    def pip_install(self, pkg_ids, index_url=NO_VALUE):
-        if index_url is NO_VALUE:
+    def pip_install(self, pkg_ids, index_url=None):
+        """
+        Blah blah
+        """
+        if index_url is None:
             index_url = self.pypi 
-        # TODO: should index_url be extra_index_url etc.
-        if index_url:
+        if index_url is not None:
             trusted_host = urlparse.urlparse(index_url).netloc
             kwargs = dict(extra_index_url=index_url, trusted_host=trusted_host)
         else:
@@ -131,8 +184,9 @@ class Executor(object):
         return cmd.batch()
 
     def conda_install(self, pkg_ids, channels=None):
+        """
+        Blah blah
+        """
         cmd = self.conda.install(quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
                                  channel=(channels or []), *pkg_ids)
         return cmd.batch()
-
-## SK_PYPI_URL = 'http://pypi.shopkick.com/mirror'
