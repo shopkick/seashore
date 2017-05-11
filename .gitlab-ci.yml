@@ -7,10 +7,34 @@ unit_test:
     - ./tempvenv/bin/pip install tox
     - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/bin ./tempvenv/bin/tox -e py27-unit
   tags:
-    - docker-shell    
-manylinux_test:
+    - docker-shell
+manylinux_test_py27_unit:
   stage: test
   script:
-    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py
+    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py -e py27-unit
   tags:
-    - docker-shell    
+    - docker-shell
+manylinux_test_py35_unit:
+  stage: test
+  script:
+    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py -e py35-unit
+  tags:
+    - docker-shell
+manylinux_test_py36:
+  stage: test
+  script:
+    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py -e py36-unit
+  tags:
+    - docker-shell
+manylinux_test_lint:
+  stage: test
+  script:
+    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py -e py27-lint
+  tags:
+    - docker-shell
+manylinux_docs:
+  stage: test
+  script:
+    - python $CI_PROJECT_DIR/test/manylinux/run-docker-test.py -e docs
+  tags:
+    - docker-shell
