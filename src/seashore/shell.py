@@ -9,7 +9,6 @@ import os
 import singledispatch
 import subprocess
 import sys
-import urlparse
 import time
 import signal
 import tempfile

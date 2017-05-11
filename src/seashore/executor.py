@@ -7,7 +7,8 @@ Construct command-line lists.
 :const:`NO_VALUE` -- indicate an option with no value (a boolean option)
 """
 import functools
-import urlparse
+
+import six
 
 import singledispatch
 
@@ -241,7 +242,7 @@ class Executor(object):
         if index_url is None:
             index_url = self._pypi 
         if index_url is not None:
-            trusted_host = urlparse.urlparse(index_url).netloc
+            trusted_host = six.moves.urllib.parse.urlparse.urlparse(index_url).netloc
             kwargs = dict(extra_index_url=index_url, trusted_host=trusted_host)
         else:
             kwargs = {}
