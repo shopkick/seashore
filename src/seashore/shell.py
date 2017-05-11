@@ -44,7 +44,7 @@ class Shell(object):
 
     _procs = attr.ib(init=False, default=attr.Factory(list))
 
-    _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd))
+    _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd), convert=bytes)
 
     _env = attr.ib(init=False, default=attr.Factory(lambda:dict(os.environ)))
 

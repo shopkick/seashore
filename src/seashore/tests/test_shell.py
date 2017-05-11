@@ -21,11 +21,11 @@ class ShellTest(unittest.TestCase):
     def test_batch(self):
         python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
         out, err = self.shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, 'hello')
-        self.assertEquals(err, 'goodbye')
+        self.assertEquals(out, b'hello')
+        self.assertEquals(err, b'goodbye')
 
     def test_failed_batch(self):
-        python_script = "raise SystemExit(1)"
+        python_script = b"raise SystemExit(1)"
         with self.assertRaises(shell.ProcessError):
             self.shell.batch([sys.executable, '-c', python_script])
 
@@ -36,7 +36,7 @@ class ShellTest(unittest.TestCase):
 
     def test_env(self):
         self.shell.setenv(b'SPECIAL', b'emett')
-        python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
+        python_script = b'import sys,os;sys.stdout.write(os.environ[b"SPECIAL"])'
         out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
         self.assertEquals(out, b'emett')
         self.assertEquals(self.shell.getenv(b'SPECIAL'), b'emett')
@@ -48,18 +48,18 @@ class ShellTest(unittest.TestCase):
         self.assertEquals(out, b'/')
 
     def test_reaper(self):
-        python_script = 'import time;time.sleep(100000)'
-        proc = self.shell.popen([sys.executable, '-c', python_script])
+        python_script = b'import time;time.sleep(100000)'
+        proc = self.shell.popen([sys.executable, b'-c', python_script])
         self.shell.reap_all()
         self.assertLess(proc.wait(), 0)
 
     def test_clone(self):
         new_shell = self.shell.clone()
-        new_shell.setenv('SPECIAL', 'lucy')
-        self.shell.setenv('SPECIAL', 'emett')
-        python_script = 'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
+        new_shell.setenv(b'SPECIAL', b'lucy')
+        self.shell.setenv(b'SPECIAL', b'emett')
+        python_script = 'import sys,os;sys.stdout.write(os.environ[b"SPECIAL"])'
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, 'lucy')
+        self.assertEquals(out, b'lucy')
 
 class AutoexitTest(unittest.TestCase):
 
