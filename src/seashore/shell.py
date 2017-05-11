@@ -16,9 +16,19 @@ import tempfile
 import attr
 
 class ProcessError(Exception):
+
     """
     A process has exited with non-zero status.
     """
+
+    def __init__(self, *args):
+        self._args = args
+
+    def __getitem__(self, i):
+        return self._args[i]
+
+    def __iter__(self):
+        return iter(self._args)
 
 @attr.s
 class Shell(object):

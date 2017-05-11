@@ -35,17 +35,17 @@ class ShellTest(unittest.TestCase):
             self.shell.interactive([sys.executable, '-c', python_script])
 
     def test_env(self):
-        self.shell.setenv('SPECIAL', 'emett')
-        python_script = 'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
-        out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, 'emett')
-        self.assertEquals(self.shell.getenv('SPECIAL'), 'emett')
+        self.shell.setenv(b'SPECIAL', b'emett')
+        python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
+        out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
+        self.assertEquals(out, b'emett')
+        self.assertEquals(self.shell.getenv(b'SPECIAL'), b'emett')
 
     def test_cd(self):
-        self.shell.cd('/')
-        python_script = 'import sys,os;sys.stdout.write(os.getcwd())'
-        out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, '/')
+        self.shell.cd(b'/')
+        python_script = b'import sys,os;sys.stdout.write(os.getcwd())'
+        out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
+        self.assertEquals(out, b'/')
 
     def test_reaper(self):
         python_script = 'import time;time.sleep(100000)'
