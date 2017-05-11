@@ -15,6 +15,9 @@ class DummyShell(object):
     def setenv(self, key, value):
         self._env[key] = value
 
+    def getenv(self, key):
+        return self._env[key]
+
     def batch(self, *args, **kwargs):
         if args == ('docker-machine env --shell cmd confluent'.split(),) and kwargs == {}:
             return ('SET DOCKER_TLS_VERIFY=1\n'
@@ -34,6 +37,8 @@ class DummyShell(object):
             return 'hello\r\n', ''
         if args == ('pip install attrs'.split(),):
             return 'attrs installed', ''
+        if args == ('pip install a-local-package'.split(),) and self._env['VIRTUAL_ENV'] == '/appenv':
+            return 'a-local-package installed', ''
         if args == ('apt-get update'.split(),):
             return 'update finished successfully', ''
         if args == ('echo hello'.split(),):
@@ -87,6 +92,15 @@ class ExecutorTest(unittest.TestCase):
                                               interactive=executor.NO_VALUE,
                                               terminal=executor.NO_VALUE).batch()
         self.assertEquals(output,'hello\r\n')
+
+    def test_in_virtual_env(self):
+        new_executor = self.executor.in_virtual_env('/appenv')
+        output, err = new_executor.pip.install('a-local-package').batch()
+        self.assertEquals(output, 'a-local-package installed')
+        new_executor_one = self.executor.patch_env(PATH='/bin')
+        new_executor_two = new_executor_one.in_virtual_env('/appenv')
+        output, err = new_executor_two.pip.install('a-local-package').batch()
+        self.assertEquals(output, 'a-local-package installed')
 
     def test_call(self):
         output, error = self.executor.pip('install', 'attrs').batch()
