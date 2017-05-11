@@ -199,9 +199,31 @@ class Executor(object):
             new_shell.setenv(key, value)
         return attr.assoc(self, shell=new_shell)
 
+    def in_virtual_env(self, envpath):
+        """
+        Return an executor where all Python commands would point at a specific virtual environment.
+        
+        :param envpath: path to virtual environment
+        :returns: a new executor
+        """
+        new_shell = self.shell.clone()
+        new_shell.setenv('VIRTUAL_ENV', envpath)
+        new_shell.setenv('PYTHONHOME', None)
+        try:
+            old_path = new_shell.getenv('PATH')
+            new_path = envpath + '/bin' + ':' + old_path
+        except KeyError:
+            new_path = envpath + '/bin'
+        new_shell.setenv('PATH', new_path)
+        return attr.assoc(self, shell=new_shell)
+        
     def pip_install(self, pkg_ids, index_url=None):
         """
-        Blah blah
+        Use pip to install packages
+
+        :param pkg_ids: an list of package names
+        :param index_url: (optional) an extra PyPI-compatible index
+        :raises: :code:`ProcessError` if the installation fails
         """
         if index_url is None:
             index_url = self.pypi 
@@ -215,7 +237,11 @@ class Executor(object):
 
     def conda_install(self, pkg_ids, channels=None):
         """
-        Blah blah
+        Use conda to install packages
+
+        :param pkg_ids: an list of package names
+        :param channels: (optional) a list of channels to install from
+        :raises: :code:`ProcessError` if the installation fails
         """
         cmd = self.conda.install(quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
                                  channel=(channels or []), *pkg_ids)

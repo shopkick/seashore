@@ -110,6 +110,18 @@ class Shell(object):
         val = str(val)  # vals must be strings
         self._env[key] = val
 
+    def getenv(self, key):
+        """
+        Get internal environment variable.
+
+        Return value of variable in internal  environment in which subprocesses will be run.
+ 
+        :param key: name of variable
+        :returns: value of variable
+        :raises: :code:`KeyError` if key is not in environment
+        """
+        return self._env[key]
+
     def cd(self, path):
         """
         Change internal current working directory.
