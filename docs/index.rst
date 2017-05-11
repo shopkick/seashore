@@ -21,7 +21,8 @@ Blah blah
 
 .. code::
 
-    base, dummy = xctr.git.rev_parse(show_toplevel=seashore.NO_VALUE).batch(cwd=git_dir)
+    base, dummy = xctr.git.rev_parse(show_toplevel=seashore.NO_VALUE,
+                                    ).batch(cwd=git_dir)
 
 Blah blah 
 

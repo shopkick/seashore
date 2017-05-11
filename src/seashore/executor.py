@@ -89,13 +89,20 @@ class _PreparedCommand(object):
 class Command(object):
 
     """
-    Blah blah
+    A command is something that can be bound to an executor.
+    Commands get automatically bound if defined as members of an executor.
+
+    :param name: the name of a 'Modern UNIX' command (i.e., something with subcommands).
     """
     name = attr.ib()
 
     def bind(self, executor, _dummy=None):
         """
-        Blah blah
+        Bind a command to an executor.
+
+        :param executor: the executor to bind to
+        :returns: something that has methods :code:`batch`, :code:`interactive` and :code:`popen`
+                  methods.
         """
         return _ExecutoredCommand(executor, self.name)
 
@@ -118,11 +125,20 @@ class _ExecutoredCommand(object):
 class Executor(object):
 
     """
-    Blah blah
+    Executing commands.
+
+    Init parameters:
+
+    :param shell: something that actually runs subprocesses. Should match the interface of :code:`Shell`.
+    :param pypi: optional. An extra index URL.
+    :param commands: optional. An iterable of strings which are commands to suppport.
+
+    The default commands that are supported are :code:`git`, :code:`pip`, :code:`conda`,
+    :code:`docker`, :code:`docker_machine`.
     """
 
     _shell = attr.ib()
-    pypi = attr.ib(default=None)
+    _pypi = attr.ib(default=None)
     _commands = attr.ib(default=attr.Factory(set), convert=set)
 
     git = Command('git')
@@ -139,25 +155,39 @@ class Executor(object):
 
     def add_command(self, name):
         """
-        Blah blah
+        Add a new command.
+
+        :param name: name of command 
         """
         self._commands.add(name)
 
-    def prepare(self, *args, **kwargs):
+    def prepare(self, command, subcommand, *args, **kwargs):
         """
-        Blah blah
+        Prepare a command (inspired by SQL statement preparation).
+
+        :param command: name of command (e.g., :code:`apt-get`)
+        :param subcommand: name of command (e.g., :code:`install`)
+        :param args: positional arguments
+        :param kwargs: option arguments
+        :returns: something that supports batch/interactive/popen
         """
-        return _PreparedCommand(cmd=cmd(*args, **kwargs), shell=self.shell.clone())
+        return _PreparedCommand(cmd=cmd(command, subcommand, *args, **kwargs), shell=self.shell.clone())
 
     def command(self, args):
         """
-        Blah blah
+        Prepare a command from a raw argument list.
+
+        :param args: argument list
+        :returns: something that supports batch/interactive/popen
         """
         return _PreparedCommand(args, shell=self.shell.clone())
 
     def in_docker_machine(self, machine):
         """
-        Blah blah
+        Return an executor where all docker commands would point at a specific Docker machine.
+
+        :param machine: name of machine
+        :returns: a new executor
         """
         new_shell = self.shell.clone()
         output, _ignored = self.docker_machine.env(machine, shell='cmd').batch()
