@@ -28,7 +28,7 @@ class ProcessError(Exception):
         return self._args[i]
 
     def __iter__(self):
-        return iter(self._args)
+        return iter(self._args) # pragma: no cover
 
 @attr.s
 class Shell(object):
@@ -44,7 +44,7 @@ class Shell(object):
 
     _procs = attr.ib(init=False, default=attr.Factory(list))
 
-    _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd), convert=bytes)
+    _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd))
 
     _env = attr.ib(init=False, default=attr.Factory(lambda:dict(os.environ)))
 

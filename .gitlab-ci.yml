@@ -1,13 +1,5 @@
 stages:
   - test
-unit_test:
-  stage: test
-  script:
-    - virtualenv --python /usr/bin/python tempvenv
-    - ./tempvenv/bin/pip install tox
-    - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/bin ./tempvenv/bin/tox -e py27-unit
-  tags:
-    - docker-shell
 manylinux_test_py27_unit:
   stage: test
   script:
