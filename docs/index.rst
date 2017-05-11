@@ -10,7 +10,7 @@ Seashore
 Quick start
 -----------
 
-The Seashore library allows writing command-based automation while looking Pythonic.
+The Seashore library enables Pythonic command-based automation.
 
 Creating an executor is easy:
 
@@ -20,14 +20,14 @@ Creating an executor is easy:
     xctor = seashore.Executor(seashore.Shell())
 
 Running commands looks like calling Python functions.
-Commands, in batch mode, will return their standard output and error.
+In batch mode, commands will return their standard output and error.
 
 .. code::
 
     base, dummy = xctr.git.rev_parse(show_toplevel=seashore.NO_VALUE,
                                     ).batch(cwd=git_dir)
 
-If an error occurs, an error will be raised.
+If an error occurs, an exception will be raised.
 If we just want to exit if any error is raised, but not leave a traceback,
 
 .. code::
