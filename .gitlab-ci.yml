@@ -8,3 +8,7 @@ unit_test:
     - PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/root/bin ./tempvenv/bin/tox -e py27-unit
   tags:
     - docker-shell    
+manylinux_test:
+  stage: test
+  script:
+    - docker run --rm -v `pwd`:/mnt/src gitlab.internal.shopkick.com:5050/open-source/manylinux bash -c "/opt/python/cp27-cp27mu/bin/pip install tox && cd /mnt/src && /opt/python/cp27-cp27mu/bin/tox -e p27-unit 
