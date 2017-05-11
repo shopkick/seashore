@@ -73,17 +73,17 @@ def cmd(bin, subcommand, *args, **kwargs):
 @attr.s(frozen=True)
 class _PreparedCommand(object):
 
-    cmd = attr.ib()
-    shell = attr.ib()
+    _cmd = attr.ib()
+    _shell = attr.ib()
 
     def batch(self, *args, **kwargs):
-        return self.shell.batch(self.cmd, *args, **kwargs)
+        return self._shell.batch(self._cmd, *args, **kwargs)
 
     def interactive(self, *args, **kwargs):
-        return self.shell.interactive(self.cmd, *args, **kwargs)
+        return self._shell.interactive(self._cmd, *args, **kwargs)
 
     def popen(self, *args, **kwargs):
-        return self.shell.popen(self.cmd, *args, **kwargs)
+        return self._shell.popen(self._cmd, *args, **kwargs)
 
 @attr.s(frozen=True)
 class Command(object):
@@ -94,7 +94,7 @@ class Command(object):
 
     :param name: the name of a 'Modern UNIX' command (i.e., something with subcommands).
     """
-    name = attr.ib()
+    _name = attr.ib()
 
     def bind(self, executor, _dummy=None):
         """
@@ -104,7 +104,7 @@ class Command(object):
         :returns: something that has methods :code:`batch`, :code:`interactive` and :code:`popen`
                   methods.
         """
-        return _ExecutoredCommand(executor, self.name)
+        return _ExecutoredCommand(executor, self._name)
 
     __get__ = bind
 
@@ -171,7 +171,7 @@ class Executor(object):
         :param kwargs: option arguments
         :returns: something that supports batch/interactive/popen
         """
-        return _PreparedCommand(cmd=cmd(command, subcommand, *args, **kwargs), shell=self.shell.clone())
+        return _PreparedCommand(cmd=cmd(command, subcommand, *args, **kwargs), shell=self._shell.clone())
 
     def command(self, args):
         """
@@ -180,7 +180,7 @@ class Executor(object):
         :param args: argument list
         :returns: something that supports batch/interactive/popen
         """
-        return _PreparedCommand(args, shell=self.shell.clone())
+        return _PreparedCommand(args, shell=self._shell.clone())
 
     def in_docker_machine(self, machine):
         """
@@ -189,7 +189,7 @@ class Executor(object):
         :param machine: name of machine
         :returns: a new executor
         """
-        new_shell = self.shell.clone()
+        new_shell = self._shell.clone()
         output, _ignored = self.docker_machine.env(machine, shell='cmd').batch()
         for line in output.splitlines():
             directive, args = line.split(None, 1)
@@ -197,7 +197,7 @@ class Executor(object):
                 continue
             key, value = args.split('=', 1)
             new_shell.setenv(key, value)
-        return attr.assoc(self, shell=new_shell)
+        return attr.assoc(self, _shell=new_shell)
 
     def in_virtual_env(self, envpath):
         """
@@ -206,7 +206,7 @@ class Executor(object):
         :param envpath: path to virtual environment
         :returns: a new executor
         """
-        new_shell = self.shell.clone()
+        new_shell = self._shell.clone()
         new_shell.setenv('VIRTUAL_ENV', envpath)
         new_shell.setenv('PYTHONHOME', None)
         try:
@@ -215,7 +215,7 @@ class Executor(object):
         except KeyError:
             new_path = envpath + '/bin'
         new_shell.setenv('PATH', new_path)
-        return attr.assoc(self, shell=new_shell)
+        return attr.assoc(self, _shell=new_shell)
         
     def pip_install(self, pkg_ids, index_url=None):
         """
@@ -226,7 +226,7 @@ class Executor(object):
         :raises: :code:`ProcessError` if the installation fails
         """
         if index_url is None:
-            index_url = self.pypi 
+            index_url = self._pypi 
         if index_url is not None:
             trusted_host = urlparse.urlparse(index_url).netloc
             kwargs = dict(extra_index_url=index_url, trusted_host=trusted_host)
