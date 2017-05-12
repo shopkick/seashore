@@ -29,7 +29,7 @@ class DummyShell(object):
                     'DO @%i\n', '')
         if (len(args) == 1 and args[0][:2] == 'docker run'.split() and
             set(args[0][2:-1]) == set('--interactive --remove --terminal'.split()) and
-            args[0][-1] =='a-machine:a-tag' and
+            args[0][-1] == 'a-machine:a-tag' and
             self._env['DOCKER_MACHINE_NAME'] == 'confluent' and
             self._env['DOCKER_CERT_PATH'] == '/Users/moshezadka/.docker/machine/machines/confluent' and
             self._env['DOCKER_TLS_VERIFY'] ==  '1' and
@@ -37,7 +37,8 @@ class DummyShell(object):
             return 'hello\r\n', ''
         if args == ('pip install attrs'.split(),):
             return 'attrs installed', ''
-        if args == ('pip install a-local-package'.split(),) and self._env['VIRTUAL_ENV'] == '/appenv':
+        if (args == ('pip install a-local-package'.split(),) and
+            self._env['VIRTUAL_ENV'] == '/appenv'):
             return 'a-local-package installed', ''
         if args == ('apt-get update'.split(),):
             return 'update finished successfully', ''
@@ -88,43 +89,43 @@ class ExecutorTest(unittest.TestCase):
 
     def test_in_docker_machine(self):
         new_executor = self.executor.in_docker_machine('confluent')
-        output, err = new_executor.docker.run('a-machine:a-tag', remove=executor.NO_VALUE,
-                                              interactive=executor.NO_VALUE,
-                                              terminal=executor.NO_VALUE).batch()
+        output, _err = new_executor.docker.run('a-machine:a-tag', remove=executor.NO_VALUE,
+                                               interactive=executor.NO_VALUE,
+                                               terminal=executor.NO_VALUE).batch()
         self.assertEquals(output,'hello\r\n')
 
     def test_in_virtual_env(self):
         new_executor = self.executor.in_virtual_env('/appenv')
-        output, err = new_executor.pip.install('a-local-package').batch()
+        output, _err = new_executor.pip.install('a-local-package').batch()
         self.assertEquals(output, 'a-local-package installed')
         new_executor_one = self.executor.patch_env(PATH='/bin')
         new_executor_two = new_executor_one.in_virtual_env('/appenv')
-        output, err = new_executor_two.pip.install('a-local-package').batch()
+        output, _err = new_executor_two.pip.install('a-local-package').batch()
         self.assertEquals(output, 'a-local-package installed')
 
     def test_call(self):
-        output, error = self.executor.pip('install', 'attrs').batch()
+        output, _error = self.executor.pip('install', 'attrs').batch()
         self.assertEquals(output, 'attrs installed')
 
     def test_arbitrary(self):
         self.executor.add_command('apt_get')
-        output, error = self.executor.apt_get.update().batch()
+        output, _error = self.executor.apt_get.update().batch()
         self.assertEquals(output, 'update finished successfully')
 
     def test_command(self):
-        output, error = self.executor.command(['echo', 'hello']).batch()
+        output, _error = self.executor.command(['echo', 'hello']).batch()
         self.assertEquals(output, 'hello\n')
 
     def test_pip_install(self):
-        output, error = self.executor.pip_install(['attrs'])
+        output, _error = self.executor.pip_install(['attrs'])
         self.assertEquals(output, 'attrs installed')
 
     def test_pip_install_index(self):
-        output, error = self.executor.pip_install(['attrs'], index_url='http://orbifold.xyz')
+        output, _error = self.executor.pip_install(['attrs'], index_url='http://orbifold.xyz')
         self.assertEquals(output, 'attrs installed from orbifold')
 
     def test_conda_install(self):
-        output, error = self.executor.conda_install(['numpy'])
+        output, _error = self.executor.conda_install(['numpy'])
         self.assertEquals(output, 'numpy installed')
 
     def test_interactive(self):
@@ -132,19 +133,19 @@ class ExecutorTest(unittest.TestCase):
 
     def test_non_existant_command(self):
         with self.assertRaises(AttributeError):
-            self.executor.this_command_doesnt_exist
+            self.executor.this_command_doesnt_exist.install().batch()
 
     def test_popen(self):
-        proc = self.executor.command(['grep', 'foo']).popen()
+        self.executor.command(['grep', 'foo']).popen()
 
     def test_dict_keywords(self):
         output, err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett', SONG='awesome')).batch()
         self.assertEquals(output, 'everything')
 
     def test_int(self):
-        output, err = self.executor.prepare('do-stuff', 'special', verbosity=5).batch()
+        output, _err = self.executor.prepare('do-stuff', 'special', verbosity=5).batch()
         self.assertEquals(output, 'doing stuff very specially')
 
     def test_list(self):
-        output, err = self.executor.prepare('chat', 'mention', person=['emett', 'lucy']).batch()
+        output, _err = self.executor.prepare('chat', 'mention', person=['emett', 'lucy']).batch()
         self.assertEquals(output, 'mentioning folks')
