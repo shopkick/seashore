@@ -1,6 +1,13 @@
 Seashore
 ========
 
+.. image:: https://travis-ci.org/shopkick/seashore.svg?branch=master
+    :target: https://travis-ci.org/shopkick/seashore
+
+.. image:: https://readthedocs.org/projects/seashore/badge/?version=latest
+:target: http://seashore.readthedocs.io/en/latest/?badge=latest
+:alt: Documentation Status
+
 Seashore provides a shell abstraction
 for easy automation of UNIX commands in Python.
 The primary interface to many common tools is the command line;
