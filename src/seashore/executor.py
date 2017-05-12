@@ -248,8 +248,8 @@ class Executor(object):
             kwargs = dict(extra_index_url=index_url, trusted_host=trusted_host)
         else:
             kwargs = {}
-        cmd = self.pip.install(*pkg_ids, **kwargs)
-        return cmd.batch()
+        mycmd = self.pip.install(*pkg_ids, **kwargs)
+        return mycmd.batch()
 
     def conda_install(self, pkg_ids, channels=None):
         """
@@ -259,6 +259,6 @@ class Executor(object):
         :param channels: (optional) a list of channels to install from
         :raises: :code:`ProcessError` if the installation fails
         """
-        cmd = self.conda.install(quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
-                                 channel=(channels or []), *pkg_ids)
-        return cmd.batch()
+        mycmd = self.conda.install(quiet=NO_VALUE, yes=NO_VALUE, show_channel_urls=NO_VALUE,
+                                   channel=(channels or []), *pkg_ids)
+        return mycmd.batch()
