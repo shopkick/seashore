@@ -155,7 +155,7 @@ class Executor(object):
 
     def __getattr__(self, name):
         if name.startswith('__') and name.endswith('__'):
-            raise AttributeError(name)
+            raise AttributeError(name) # Reserved Python names not supported as commands
         if name not in self._commands:
             raise AttributeError(name)
         name = name.replace('_', '-')
@@ -221,7 +221,7 @@ class Executor(object):
         return attr.assoc(self, _shell=new_shell)
 
 
-    def in_virtual_env(self, envpath):
+    def in_virtualenv(self, envpath):
         """
         Return an executor where all Python commands would point at a specific virtual environment.
 

@@ -110,13 +110,13 @@ class ExecutorTest(unittest.TestCase):
                                                terminal=executor.NO_VALUE).batch()
         self.assertEquals(output, 'hello\r\n')
 
-    def test_in_virtual_env(self):
-        """calling in_virtual_env returns an executor that runs pip in a virtual env"""
-        new_executor = self.executor.in_virtual_env('/appenv')
+    def test_in_virtualenv(self):
+        """calling in_virtualenv returns an executor that runs pip in a virtual env"""
+        new_executor = self.executor.in_virtualenv('/appenv')
         output, _err = new_executor.pip.install('a-local-package').batch()
         self.assertEquals(output, 'a-local-package installed')
         new_executor_one = self.executor.patch_env(PATH='/bin')
-        new_executor_two = new_executor_one.in_virtual_env('/appenv')
+        new_executor_two = new_executor_one.in_virtualenv('/appenv')
         output, _err = new_executor_two.pip.install('a-local-package').batch()
         self.assertEquals(output, 'a-local-package installed')
 
