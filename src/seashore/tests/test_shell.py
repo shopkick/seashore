@@ -35,10 +35,11 @@ class ShellTest(unittest.TestCase):
             self.shell.interactive([sys.executable, '-c', python_script])
 
     def test_env(self):
-        self.shell.setenv('SPECIAL', b'emett')
-        out, _ignored = self.shell.batch(['sh', '-c', 'echo $SPECIAL'])
+        self.shell.setenv('SPECIAL', 'emett')
+        python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
+        out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, b'emett')
-        self.assertEquals(self.shell.getenv('SPECIAL'), b'emett')
+        self.assertEquals(self.shell.getenv('SPECIAL'), 'emett')
 
     def test_cd(self):
         self.shell.cd('/')
@@ -54,8 +55,8 @@ class ShellTest(unittest.TestCase):
 
     def test_clone(self):
         new_shell = self.shell.clone()
-        new_shell.setenv('SPECIAL', b'lucy')
-        self.shell.setenv('SPECIAL', b'emett')
+        new_shell.setenv('SPECIAL', 'lucy')
+        self.shell.setenv('SPECIAL', 'emett')
         python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, b'lucy')
