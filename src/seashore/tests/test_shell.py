@@ -36,7 +36,7 @@ class ShellTest(unittest.TestCase):
 
     def test_env(self):
         self.shell.setenv(b'SPECIAL', b'emett')
-        python_script = b'import sys,os;sys.stdout.write(str(os.environ[b"SPECIAL"]))'
+        python_script = b'import sys,os;sys.stdout.write(str(os.environ["SPECIAL"]))'
         out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
         self.assertEquals(out, b'emett')
         self.assertEquals(self.shell.getenv(b'SPECIAL'), b'emett')
@@ -57,7 +57,7 @@ class ShellTest(unittest.TestCase):
         new_shell = self.shell.clone()
         new_shell.setenv(b'SPECIAL', b'lucy')
         self.shell.setenv(b'SPECIAL', b'emett')
-        python_script = 'import sys,os;sys.stdout.write(str(os.environ[b"SPECIAL"]))'
+        python_script = 'import sys,os;sys.stdout.write(str(os.environ["SPECIAL"]))'
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, b'lucy')
 

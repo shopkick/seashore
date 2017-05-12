@@ -130,6 +130,10 @@ class ExecutorTest(unittest.TestCase):
     def test_interactive(self):
         self.executor.command(['python']).interactive()
 
+    def test_non_existant_command(self):
+        with self.assertRaises(AttributeError):
+            self.executor.this_command_doesnt_exist
+
     def test_popen(self):
         proc = self.executor.command(['grep', 'foo']).popen()
 
