@@ -12,10 +12,15 @@ Seashore helps in these cases by being able to write a
 clean, simple, and testable Python API wrapper around
 these tools.
 
+License
+-------
+
+Seashore is (C) Shopkick, and licensed under the MIT license.
+See the LICENSE file for more details.
+
 Contributors
 ------------
 
-* Shopkick
 * Moshe Zadka
 * Mahmoud Hashemi
 * Kurt B. Rose
