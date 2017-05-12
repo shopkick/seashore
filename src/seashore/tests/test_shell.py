@@ -14,7 +14,7 @@ class ShellTest(unittest.TestCase):
         self.shell = shell.Shell()
 
     def test_batch(self):
-        """batch mode returns contents of stdout/stderr from subprocesses""" 
+        """batch mode returns contents of stdout/stderr from subprocesses"""
         python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
         out, err = self.shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, b'hello')

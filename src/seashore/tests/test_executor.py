@@ -22,51 +22,51 @@ class DummyShell(object):
         if args == ('docker-machine env --shell cmd confluent'.split(),) and kwargs == {}:
             return ('SET DOCKER_TLS_VERIFY=1\n'
                     'SET DOCKER_HOST=tcp://192.168.99.103:2376\n'
-                    'SET DOCKER_CERT_PATH=/Users/moshezadka/.docker/machine/machines/confluent\n'
+                    'SET DOCKER_CERT_PATH=/Users/u/.docker/machine/machines/confluent\n'
                     'SET DOCKER_MACHINE_NAME=confluent\n'
                     'REM Run this command to configure your shell: \n'
                     'REM 	@FOR /f "tokens=*" %i IN (\'docker-machine env --shell cmd confluent\') '
                     'DO @%i\n', '')
         if (len(args) == 1 and args[0][:2] == 'docker run'.split() and
-            set(args[0][2:-1]) == set('--interactive --remove --terminal'.split()) and
-            args[0][-1] == 'a-machine:a-tag' and
-            self._env['DOCKER_MACHINE_NAME'] == 'confluent' and
-            self._env['DOCKER_CERT_PATH'] == '/Users/moshezadka/.docker/machine/machines/confluent' and
-            self._env['DOCKER_TLS_VERIFY'] ==  '1' and
-            self._env['DOCKER_HOST'] == 'tcp://192.168.99.103:2376'):
+                set(args[0][2:-1]) == set('--interactive --remove --terminal'.split()) and
+                args[0][-1] == 'a-machine:a-tag' and
+                self._env['DOCKER_MACHINE_NAME'] == 'confluent' and
+                self._env['DOCKER_CERT_PATH'] == '/Users/u/.docker/machine/machines/confluent' and
+                self._env['DOCKER_TLS_VERIFY'] == '1' and
+                self._env['DOCKER_HOST'] == 'tcp://192.168.99.103:2376'):
             return 'hello\r\n', ''
         if args == ('pip install attrs'.split(),):
             return 'attrs installed', ''
         if (args == ('pip install a-local-package'.split(),) and
-            self._env['VIRTUAL_ENV'] == '/appenv'):
+                self._env['VIRTUAL_ENV'] == '/appenv'):
             return 'a-local-package installed', ''
         if args == ('apt-get update'.split(),):
             return 'update finished successfully', ''
         if args == ('echo hello'.split(),):
             return 'hello\n', ''
         if (len(args) == 1 and args[0][:2] == 'pip install'.split() and
-            args[0][-1] =='attrs' and
-            '--trusted-host' in args[0] and
-            args[0][args[0].index('--trusted-host')+1] == 'orbifold.xyz' and
-            '--extra-index-url' in args[0] and
-            args[0][args[0].index('--extra-index-url')+1] == 'http://orbifold.xyz'):
+                args[0][-1] =='attrs' and
+                '--trusted-host' in args[0] and
+                args[0][args[0].index('--trusted-host')+1] == 'orbifold.xyz' and
+                '--extra-index-url' in args[0] and
+                args[0][args[0].index('--extra-index-url')+1] == 'http://orbifold.xyz'):
             return 'attrs installed from orbifold', ''
         if (len(args) == 1 and args[0][:2] == 'conda install'.split() and
-            set(args[0][2:-1]) == set('--show-channel-urls --quiet --yes'.split()) and
-            args[0][-1] =='numpy'):
+                set(args[0][2:-1]) == set('--show-channel-urls --quiet --yes'.split()) and
+                args[0][-1] =='numpy'):
             return 'numpy installed', ''
         if (len(args) == 1 and args[0][:2] == 'docker run'.split() and
-            args[0][2] == '--env' and
-            args[0][4] == '--env' and
-            set([args[0][3], args[0][5]]) == set(['SONG=awesome', 'SPECIAL=emett']) and
-            args[0][-1] =='lego:1'):
+                args[0][2] == '--env' and
+                args[0][4] == '--env' and
+                set([args[0][3], args[0][5]]) == set(['SONG=awesome', 'SPECIAL=emett']) and
+                args[0][-1] =='lego:1'):
             return 'everything', ''
         if args == ('do-stuff special --verbosity 5'.split(),):
             return 'doing stuff very specially', ''
         if (len(args) == 1 and args[0][:2] == 'chat mention'.split() and
-            args[0][2] == '--person' and
-            args[0][4] == '--person' and
-            set([args[0][3], args[0][5]]) == set(['emett', 'lucy'])):
+                args[0][2] == '--person' and
+                args[0][4] == '--person' and
+                set([args[0][3], args[0][5]]) == set(['emett', 'lucy'])):
             return 'mentioning folks', ''
         raise ValueError(self, args, kwargs)
 
@@ -92,7 +92,7 @@ class ExecutorTest(unittest.TestCase):
         output, _err = new_executor.docker.run('a-machine:a-tag', remove=executor.NO_VALUE,
                                                interactive=executor.NO_VALUE,
                                                terminal=executor.NO_VALUE).batch()
-        self.assertEquals(output,'hello\r\n')
+        self.assertEquals(output, 'hello\r\n')
 
     def test_in_virtual_env(self):
         new_executor = self.executor.in_virtual_env('/appenv')
@@ -139,7 +139,7 @@ class ExecutorTest(unittest.TestCase):
         self.executor.command(['grep', 'foo']).popen()
 
     def test_dict_keywords(self):
-        output, err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett', SONG='awesome')).batch()
+        output, _err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett', SONG='awesome')).batch()
         self.assertEquals(output, 'everything')
 
     def test_int(self):
