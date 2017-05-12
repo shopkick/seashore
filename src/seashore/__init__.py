@@ -4,8 +4,8 @@ Seashore
 
 Seashore is a collection of shell abstractions.
 """
-from executor import Executor, NO_VALUE
-from shell import Shell
-from _version import __version__
+from seashore.executor import Executor, NO_VALUE
+from seashore.shell import Shell
+from seashore._version import __version__
 
 __version__ = ['Executor', 'NO_VALUE', 'Shell', '__version__']

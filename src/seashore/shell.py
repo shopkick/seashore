@@ -3,23 +3,30 @@ Shell
 -----
 Running subprocesses with a shell-like interface.
 '''
-import copy
 import contextlib
 import os
-import singledispatch
-import subprocess
-import sys
-import urlparse
+import tempfile
 import time
 import signal
-import tempfile
+import subprocess
 
 import attr
 
 class ProcessError(Exception):
+
     """
     A process has exited with non-zero status.
     """
+
+    def __init__(self, *args):
+        super(ProcessError, self).__init__()
+        self._args = args
+
+    def __getitem__(self, i):
+        return self._args[i]
+
+    def __iter__(self):
+        return iter(self._args) # pragma: no cover
 
 @attr.s
 class Shell(object):
@@ -28,7 +35,7 @@ class Shell(object):
     Run subprocesses.
 
     Init arguments:
-    
+
     :param cwd: current working directory (default is process's current working directory)
     :param env: environment variables dict (default is a copy of the process's environment)
     """
@@ -37,7 +44,7 @@ class Shell(object):
 
     _cwd = attr.ib(init=False, default=attr.Factory(os.getcwd))
 
-    _env = attr.ib(init=False, default=attr.Factory(lambda:dict(os.environ)))
+    _env = attr.ib(init=False, default=attr.Factory(lambda: dict(os.environ)))
 
 
     def batch(self, command, cwd=None):
@@ -49,8 +56,7 @@ class Shell(object):
         :returns: pair of standard output, standard error
         :raises: :code:`ProcessError` with (return code, standard output, standard error)
         """
-        with open('/dev/null') as stdin, \
-             tempfile.NamedTemporaryFile() as stdout, \
+        with tempfile.NamedTemporaryFile() as stdout, \
              tempfile.NamedTemporaryFile() as stderr:
             proc = self.popen(command, stdin=subprocess.PIPE, stdout=stdout, stderr=stderr, cwd=cwd)
             proc.communicate('')
@@ -115,14 +121,14 @@ class Shell(object):
         Get internal environment variable.
 
         Return value of variable in internal  environment in which subprocesses will be run.
- 
+
         :param key: name of variable
         :returns: value of variable
         :raises: :code:`KeyError` if key is not in environment
         """
         return self._env[key]
 
-    def cd(self, path):
+    def chdir(self, path):
         """
         Change internal current working directory.
 
@@ -169,5 +175,5 @@ def autoexit_code():
     """
     try:
         yield
-    except ProcessError as pe:
-        raise SystemExit(pe[0])
+    except ProcessError as pexc:
+        raise SystemExit(pexc[0])
