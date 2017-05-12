@@ -1,3 +1,5 @@
+# pragma pylint: disable=too-many-boolean-expressions
+# pragma pylint: disable=too-many-return-statements
 """Test seashore.executor"""
 
 import unittest
