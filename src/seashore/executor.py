@@ -17,7 +17,7 @@ import attr
 NO_VALUE = object()
 
 @singledispatch.singledispatch
-def _keyword_arguments(value, key):
+def _keyword_arguments(_value, key):
     yield key
 
 @_keyword_arguments.register(str)
@@ -42,18 +42,19 @@ def _keyword_arguments_dict(value, key):
         yield key
         yield '{}={}'.format(in_k, thing)
 
-def cmd(bin, subcommand, *args, **kwargs):
+def cmd(binary, subcommand, *args, **kwargs):
     """
     Construct a command line for a "modern UNIX" command.
 
     Modern UNIX command do a closely-related-set-of-things and do it well.
     Examples include :code:`apt-get` or :code:`git`.
 
-    :param bin: the name of the command
+    :param binary: the name of the command
     :param subcommand: the subcommand used
     :param args: positional arguments (put last)
     :param kwargs: options
-    :returns: list of arguments that is suitable to be passed to :code:`subprocess.Popen` and friends.
+    :returns: list of arguments that is suitable to be passed to :code:`subprocess.Popen`
+              and friends.
 
     When specifying options, the following assumptions are made:
 
@@ -64,7 +65,7 @@ def cmd(bin, subcommand, *args, **kwargs):
     * If the value is a dict, the option will be repeated multiple times, and
       its values will be :code:`<KEY>=<VALUE>`.
     """
-    ret = [bin, subcommand]
+    ret = [binary, subcommand]
     for key, value in kwargs.items():
         key = '--' + key.replace('_', '-')
         ret.extend(_keyword_arguments(value, key))
@@ -78,12 +79,15 @@ class _PreparedCommand(object):
     _shell = attr.ib()
 
     def batch(self, *args, **kwargs):
+        """Run the shell's batch"""
         return self._shell.batch(self._cmd, *args, **kwargs)
 
     def interactive(self, *args, **kwargs):
+        """Run the shell's interactive"""
         return self._shell.interactive(self._cmd, *args, **kwargs)
 
     def popen(self, *args, **kwargs):
+        """Run the shell's popen"""
         return self._shell.popen(self._cmd, *args, **kwargs)
 
 @attr.s(frozen=True)
@@ -130,7 +134,8 @@ class Executor(object):
 
     Init parameters:
 
-    :param shell: something that actually runs subprocesses. Should match the interface of :code:`Shell`.
+    :param shell: something that actually runs subprocesses.
+                  Should match the interface of :code:`Shell`.
     :param pypi: optional. An extra index URL.
     :param commands: optional. An iterable of strings which are commands to suppport.
 
@@ -160,7 +165,7 @@ class Executor(object):
         """
         Add a new command.
 
-        :param name: name of command 
+        :param name: name of command
         """
         self._commands.add(name)
 
@@ -174,7 +179,8 @@ class Executor(object):
         :param kwargs: option arguments
         :returns: something that supports batch/interactive/popen
         """
-        return _PreparedCommand(cmd=cmd(command, subcommand, *args, **kwargs), shell=self._shell.clone())
+        return _PreparedCommand(cmd=cmd(command, subcommand, *args, **kwargs),
+                                shell=self._shell.clone())
 
     def command(self, args):
         """
@@ -213,12 +219,12 @@ class Executor(object):
         for key, value in kwargs.items():
             new_shell.setenv(key, value)
         return attr.assoc(self, _shell=new_shell)
-       
+
 
     def in_virtual_env(self, envpath):
         """
         Return an executor where all Python commands would point at a specific virtual environment.
-        
+
         :param envpath: path to virtual environment
         :returns: a new executor
         """
@@ -232,7 +238,7 @@ class Executor(object):
             new_path = envpath + '/bin'
         new_shell.setenv('PATH', new_path)
         return attr.assoc(self, _shell=new_shell)
-        
+
     def pip_install(self, pkg_ids, index_url=None):
         """
         Use pip to install packages
@@ -242,7 +248,7 @@ class Executor(object):
         :raises: :code:`ProcessError` if the installation fails
         """
         if index_url is None:
-            index_url = self._pypi 
+            index_url = self._pypi
         if index_url is not None:
             trusted_host = six.moves.urllib.parse.urlparse(index_url).netloc
             kwargs = dict(extra_index_url=index_url, trusted_host=trusted_host)
