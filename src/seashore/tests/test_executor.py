@@ -1,4 +1,4 @@
-# Copyright (c) Shopkick
+# Copyright (c) Shopkick 2017
 # See LICENSE for details.
 # pragma pylint: disable=too-many-boolean-expressions
 # pragma pylint: disable=too-many-return-statements

@@ -1,4 +1,4 @@
-# Copyright (c) Shopkick
+# Copyright (c) Shopkick 2017
 # See LICENSE for details.
 from __future__ import absolute_import, division, print_function
 
