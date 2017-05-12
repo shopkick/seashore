@@ -1,11 +1,13 @@
+"""Tests for seashore.shell"""
+
 import sys
 import unittest
-
-import attr
 
 from seashore import shell
 
 class ShellTest(unittest.TestCase):
+
+    """Tests for Shell()"""
 
     def setUp(self):
         """create a new shell object"""
@@ -63,11 +65,13 @@ class ShellTest(unittest.TestCase):
 
 class AutoexitTest(unittest.TestCase):
 
+    """Tests for autoexit_code"""
+
     def test_success(self):
         """autoexit_code wrapping success does not exit"""
         with shell.autoexit_code():
             pass
-        self.assertTrue(True)
+        self.addCleanup(lambda: None)
 
     def test_failure(self):
         """autoexit_code wrapping a ProcessError raise exits"""

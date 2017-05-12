@@ -128,7 +128,7 @@ class Shell(object):
         """
         return self._env[key]
 
-    def chdir(self, path): 
+    def chdir(self, path):
         """
         Change internal current working directory.
 
