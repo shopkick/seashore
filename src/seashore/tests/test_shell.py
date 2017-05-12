@@ -35,9 +35,8 @@ class ShellTest(unittest.TestCase):
             self.shell.interactive([sys.executable, '-c', python_script])
 
     def test_env(self):
-        self.shell.setenv(b'SPECIAL', b'emett')
-        ## python_script = b'import sys,os;sys.stdout.write(str(os.environ["SPECIAL"]))'
-        python_script = b'import sys,os;sys.stdout.write(str(os.environ))' # ["SPECIAL"]))'
+        self.shell.setenv('SPECIAL', b'emett')
+        python_script = b'import sys,os;sys.stdout.write(str(os.environ["SPECIAL"]))'
         out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
         self.assertEquals(out, b'emett')
         self.assertEquals(self.shell.getenv(b'SPECIAL'), b'emett')
