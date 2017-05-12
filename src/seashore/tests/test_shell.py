@@ -1,3 +1,5 @@
+# Copyright (c) Shopkick
+# See LICENSE for details.
 """Tests for seashore.shell"""
 
 import sys

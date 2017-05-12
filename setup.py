@@ -1,3 +1,5 @@
+# Copyright (c) Shopkick
+# See LICENSE for details.
 from __future__ import absolute_import, division, print_function
 
 import setuptools
@@ -12,6 +14,7 @@ setuptools.setup(
     url="http://github.com/shopkick/seashore",
     use_incremental=True,
     setup_requires=['incremental'],
+    license='MIT',
     install_requires=[
         'incremental',
         'attrs',
