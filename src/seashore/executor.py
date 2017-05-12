@@ -149,6 +149,8 @@ class Executor(object):
     docker_machine = Command('docker-machine')
 
     def __getattr__(self, name):
+        if name.startswith('__') and name.endswith('__'):
+            raise AttributeError(name)
         if name not in self._commands:
             raise AttributeError(name)
         name = name.replace('_', '-')
