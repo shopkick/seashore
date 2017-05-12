@@ -36,10 +36,9 @@ class ShellTest(unittest.TestCase):
 
     def test_env(self):
         self.shell.setenv('SPECIAL', b'emett')
-        python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
-        out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
+        out, _ignored = self.shell.batch(['sh', '-c', 'echo $SPECIAL'])
         self.assertEquals(out, b'emett')
-        self.assertEquals(self.shell.getenv(b'SPECIAL'), b'emett')
+        self.assertEquals(self.shell.getenv('SPECIAL'), b'emett')
 
     def test_cd(self):
         self.shell.cd('/')
