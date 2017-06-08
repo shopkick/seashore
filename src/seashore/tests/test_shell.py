@@ -65,6 +65,26 @@ class ShellTest(unittest.TestCase):
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, b'lucy')
 
+class ProcessErrorTest(unittest.TestCase):
+
+    """Tests that check process error is useful"""
+
+    def test_returncode(self):
+        """returncode attribtue is set to passed-in value"""
+        self.assertEquals(shell.ProcessError(13).returncode, 13)
+
+    def test_output(self):
+        """output attribtue is set to passed-in value"""
+        self.assertEquals(shell.ProcessError(13, "woo").output, "woo")
+
+    def test_repr(self):
+        """repr contains output, error and code"""
+        procerr = shell.ProcessError(13, "myout", "myerr")
+        stringified = repr(procerr)
+        self.assertIn('13', stringified)
+        self.assertIn('myout', stringified)
+        self.assertIn('myerr', stringified)
+
 class AutoexitTest(unittest.TestCase):
 
     """Tests for autoexit_code"""

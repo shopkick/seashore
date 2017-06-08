@@ -23,6 +23,14 @@ class ProcessError(Exception):
     def __init__(self, *args):
         super(ProcessError, self).__init__()
         self._args = args
+        self.returncode = args[0]
+        if len(self._args) > 1:
+            self.output = args[1]
+        if len(self._args) > 2:
+            self.error = args[1]
+
+    def __repr__(self):
+        return 'ProcessError({})'.format(repr(self._args))
 
     def __getitem__(self, i):
         return self._args[i]
