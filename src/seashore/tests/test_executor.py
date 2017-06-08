@@ -94,6 +94,12 @@ class DummyShell(object):
             return
         raise ValueError(self, args, kwargs)
 
+    def redirect(self, cmd, outfp, errfp, *args, **kwargs):
+        """(Pretend to) redirect a command"""
+        if cmd == ['docker', 'run', 'confluent'] and outfp == 1 and errfp == 2:
+            return
+        raise ValueError(self, cmd, outfp, errfp, args, kwargs)
+
 
 class ExecutorTest(unittest.TestCase):
 
@@ -103,6 +109,10 @@ class ExecutorTest(unittest.TestCase):
         """build an executor with a dummy shell"""
         self.shell = DummyShell()
         self.executor = executor.Executor(self.shell)
+
+    def test_redirect(self):
+        """redirecting output and error"""
+        self.executor.docker.run('confluent').redirect(outfp=1, errfp=2)
 
     def test_in_docker_machine(self):
         """calling in_docker_machine returns an executor that runs docker pointed at the machine"""

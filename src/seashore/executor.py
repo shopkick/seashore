@@ -88,9 +88,14 @@ class _PreparedCommand(object):
         """Run the shell's interactive"""
         return self._shell.interactive(self._cmd, *args, **kwargs)
 
+    def redirect(self, *args, **kwargs):
+        """Run the shell's redirect"""
+        return self._shell.redirect(self._cmd, *args, **kwargs)
+
     def popen(self, *args, **kwargs):
         """Run the shell's popen"""
         return self._shell.popen(self._cmd, *args, **kwargs)
+
 
 @attr.s(frozen=True)
 class Command(object):
