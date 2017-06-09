@@ -31,6 +31,8 @@ class DummyShell(object):
 
     def batch(self, *args, **kwargs):
         """(Pretend to) run a command in batch mode"""
+        if args == ('git rev-parse HEAD'.split(),) and kwargs == {}:
+            return '777', ''
         if args == ('docker-machine env --shell cmd confluent'.split(),) and kwargs == {}:
             return ('SET DOCKER_TLS_VERIFY=1\n'
                     'SET DOCKER_HOST=tcp://192.168.99.103:2376\n'
@@ -113,6 +115,12 @@ class ExecutorTest(unittest.TestCase):
     def test_redirect(self):
         """redirecting output and error"""
         self.executor.docker.run('confluent').redirect(outfp=1, errfp=2)
+
+    def test_underscore(self):
+        """underscore is converted to a dash"""
+        out, err = self.executor.git.rev_parse('HEAD').batch()
+        self.assertEquals(out, '777')
+        self.assertEquals(err, '')
 
     def test_in_docker_machine(self):
         """calling in_docker_machine returns an executor that runs docker pointed at the machine"""
