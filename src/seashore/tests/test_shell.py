@@ -3,6 +3,7 @@
 """Tests for seashore.shell"""
 
 import sys
+import tempfile
 import unittest
 
 from seashore import shell
@@ -14,6 +15,34 @@ class ShellTest(unittest.TestCase):
     def setUp(self):
         """create a new shell object"""
         self.shell = shell.Shell()
+
+    def test_redirect(self):
+        """redirect sends output to temp file"""
+        python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
+        with tempfile.NamedTemporaryFile() as stdout, \
+             tempfile.NamedTemporaryFile() as stderr:
+            self.shell.redirect([sys.executable, '-c', python_script], stdout, stderr)
+            stdout.seek(0)
+            out = stdout.read()
+            stderr.seek(0)
+            err = stderr.read()
+        self.assertEquals(out, b'hello')
+        self.assertEquals(err, b'goodbye')
+
+    def test_failed_redirect(self):
+        """redirect sends output to temp file and raises if it fails"""
+        python_script = ("import sys;sys.stdout.write('hello');sys.stderr.write('goodbye');"
+                         "sys.exit(1)")
+        with tempfile.NamedTemporaryFile() as stdout, \
+             tempfile.NamedTemporaryFile() as stderr:
+            with self.assertRaises(shell.ProcessError):
+                self.shell.redirect([sys.executable, '-c', python_script], stdout, stderr)
+            stdout.seek(0)
+            out = stdout.read()
+            stderr.seek(0)
+            err = stderr.read()
+        self.assertEquals(out, b'hello')
+        self.assertEquals(err, b'goodbye')
 
     def test_batch(self):
         """batch mode returns contents of stdout/stderr from subprocesses"""

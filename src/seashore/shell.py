@@ -56,6 +56,21 @@ class Shell(object):
 
     _env = attr.ib(init=False, default=attr.Factory(lambda: dict(os.environ)))
 
+    def redirect(self, command, outfp, errfp, cwd=None):
+        """
+        Run a process, while its standard error and output go to pre-existing files
+
+        :param command: list of arguments
+        :param outfp: output file object
+        :param errfp: error file object
+        :param cwd: current working directory (default is to use the internal working directory)
+        :raises: :code:`ProcessError` with return code
+        """
+        proc = self.popen(command, stdin=subprocess.PIPE, stdout=outfp, stderr=errfp, cwd=cwd)
+        proc.communicate('')
+        retcode = proc.wait()
+        if retcode != 0:
+            raise ProcessError(retcode)
 
     def batch(self, command, cwd=None):
         """
