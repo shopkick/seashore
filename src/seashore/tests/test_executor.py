@@ -2,6 +2,14 @@
 # See LICENSE for details.
 # pragma pylint: disable=too-many-boolean-expressions
 # pragma pylint: disable=too-many-return-statements
+# pragma pylint: disable=too-many-branches
+# pragma pylint: disable=too-many-public-methods
+# The pragmas above are to deal with the DummyShell
+# class. It should probably be broken up and define a class
+# per-test. While defining a class in a function is usually
+# a bad idea, because of memory leaks, in test functions
+# it should probably be ok.
+# See issue #21
 """Test seashore.executor"""
 
 import os
@@ -96,9 +104,9 @@ class DummyShell(object):
         if args == ('docker exec 3433 echo yay'.split(),):
             return 'yay\r\n', ''
         if (args[0][:2] == 'git show'.split() and
-            '--no-patch' in args[0] and
-            '--format=%ct' in args[0] and
-            len(args[0]) == 4):
+                '--no-patch' in args[0] and
+                '--format=%ct' in args[0] and
+                len(args[0]) == 4):
             return '1496798292', ''
         raise ValueError(self, args, kwargs)
 
@@ -230,10 +238,10 @@ class ExecutorTest(unittest.TestCase):
 
     def test_chdir(self):
         """changing directory changes the working directory"""
-        executor = self.executor.chdir('foo/bar')
+        new_executor = self.executor.chdir('foo/bar')
         output, _err = self.executor.command(['pwd']).batch()
         self.assertEquals(output, '')
-        output, _err = executor.command(['pwd']).batch()
+        output, _err = new_executor.command(['pwd']).batch()
         self.assertEquals(output, 'foo/bar')
 
     def test_keyword(self):
