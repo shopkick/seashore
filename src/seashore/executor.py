@@ -18,9 +18,18 @@ import attr
 
 NO_VALUE = object()
 
+@attr.s(frozen=True)
+class Eq(object):
+
+    content = attr.ib()
+
 @singledispatch.singledispatch
 def _keyword_arguments(_value, key):
     yield key
+
+@_keyword_arguments.register(Eq)
+def _keyword_arguments_eq(value, key):
+    yield key + '=' + value.content
 
 @_keyword_arguments.register(str)
 def _keyword_arguments_str(value, key):

@@ -84,6 +84,8 @@ class DummyShell(object):
             return 'everything', ''
         if args == ('do-stuff special --verbosity 5'.split(),):
             return 'doing stuff very specially', ''
+        if args == ('do-stuff special --verbose'.split(),):
+            return 'doing stuff slightly more verbosely', ''
         if (len(args) == 1 and args[0][:2] == 'chat mention'.split() and
                 args[0][2] == '--person' and
                 args[0][4] == '--person' and
@@ -93,6 +95,11 @@ class DummyShell(object):
             return self._cwd, ''
         if args == ('docker exec 3433 echo yay'.split(),):
             return 'yay\r\n', ''
+        if (args[0][:2] == 'git show'.split() and
+            '--no-patch' in args[0] and
+            '--format=%ct' in args[0] and
+            len(args[0]) == 4):
+            return '1496798292', ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -122,6 +129,11 @@ class ExecutorTest(unittest.TestCase):
         """build an executor with a dummy shell"""
         self.shell = DummyShell()
         self.executor = executor.Executor(self.shell)
+
+    def test_eq(self):
+        """forcing eq yields equals-style option"""
+        out, _err = self.executor.git.show(no_patch=None, format=executor.Eq('%ct')).batch()
+        self.assertEquals(out, '1496798292')
 
     def test_redirect(self):
         """redirecting output and error"""
@@ -200,6 +212,11 @@ class ExecutorTest(unittest.TestCase):
         output, _err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett',
                                                                    SONG='awesome')).batch()
         self.assertEquals(output, 'everything')
+
+    def test_none(self):
+        """prepare with None option gives undecorated"""
+        output, _err = self.executor.prepare('do-stuff', 'special', verbose=None).batch()
+        self.assertEquals(output, 'doing stuff slightly more verbosely')
 
     def test_int(self):
         """prepare with int option stringifies the int"""
