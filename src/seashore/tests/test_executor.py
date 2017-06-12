@@ -91,6 +91,8 @@ class DummyShell(object):
             return 'mentioning folks', ''
         if args == (['pwd'],):
             return self._cwd, ''
+        if args == ('docker exec 3433 echo yay'.split(),):
+            return 'yay\r\n', ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -216,3 +218,8 @@ class ExecutorTest(unittest.TestCase):
         self.assertEquals(output, '')
         output, _err = executor.command(['pwd']).batch()
         self.assertEquals(output, 'foo/bar')
+
+    def test_keyword(self):
+        """using a trailing _ protects keywords"""
+        output, _err = self.executor.docker.exec_('3433', 'echo', 'yay').batch()
+        self.assertEquals(output, 'yay\r\n')

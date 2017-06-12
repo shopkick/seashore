@@ -131,7 +131,8 @@ class _ExecutoredCommand(object):
         return self._executor.prepare(self._name, *args, **kwargs)
 
     def __getattr__(self, subcommand):
-        return functools.partial(self._executor.prepare, self._name, subcommand.replace('_', '-'))
+        subcommand = subcommand.rstrip('_').replace('_', '-')
+        return functools.partial(self._executor.prepare, self._name, subcommand)
 
 @attr.s(frozen=True)
 class Executor(object):
