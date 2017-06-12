@@ -4,6 +4,7 @@
 # pragma pylint: disable=too-many-return-statements
 """Test seashore.executor"""
 
+import os
 import unittest
 
 import attr
@@ -17,13 +18,19 @@ class DummyShell(object):
 
     _env = attr.ib(default=attr.Factory(dict))
 
+    _cwd = attr.ib(default="")
+
     def clone(self):
         """Return a copy of the shell"""
-        return attr.assoc(self, _env=dict(self._env))
+        return attr.evolve(self, env=dict(self._env))
 
     def setenv(self, key, value):
         """Set an environment variable"""
         self._env[key] = value
+
+    def chdir(self, path):
+        """change directory"""
+        self._cwd = os.path.join(self._cwd, path)
 
     def getenv(self, key):
         """Get an environment variable"""
@@ -82,6 +89,8 @@ class DummyShell(object):
                 args[0][4] == '--person' and
                 set([args[0][3], args[0][5]]) == set(['emett', 'lucy'])):
             return 'mentioning folks', ''
+        if args == (['pwd'],):
+            return self._cwd, ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -199,3 +208,11 @@ class ExecutorTest(unittest.TestCase):
         """prepare with list option explodes into a list of options"""
         output, _err = self.executor.prepare('chat', 'mention', person=['emett', 'lucy']).batch()
         self.assertEquals(output, 'mentioning folks')
+
+    def test_chdir(self):
+        """changing directory changes the working directory"""
+        executor = self.executor.chdir('foo/bar')
+        output, _err = self.executor.command(['pwd']).batch()
+        self.assertEquals(output, '')
+        output, _err = executor.command(['pwd']).batch()
+        self.assertEquals(output, 'foo/bar')

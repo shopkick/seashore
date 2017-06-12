@@ -225,8 +225,18 @@ class Executor(object):
         new_shell = self._shell.clone()
         for key, value in kwargs.items():
             new_shell.setenv(key, value)
-        return attr.assoc(self, _shell=new_shell)
+        return attr.evolve(self, shell=new_shell)
 
+    def chdir(self, path):
+        """
+        Return a new executor where the working directory is different.
+
+        :param path: new path
+        :returns: new executor with a different working directory
+        """
+        new_shell = self._shell.clone()
+        new_shell.chdir(path)
+        return attr.evolve(self, shell=new_shell)
 
     def in_virtualenv(self, envpath):
         """
