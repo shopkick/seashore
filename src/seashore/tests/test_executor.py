@@ -2,8 +2,17 @@
 # See LICENSE for details.
 # pragma pylint: disable=too-many-boolean-expressions
 # pragma pylint: disable=too-many-return-statements
+# pragma pylint: disable=too-many-branches
+# pragma pylint: disable=too-many-public-methods
+# The pragmas above are to deal with the DummyShell
+# class. It should probably be broken up and define a class
+# per-test. While defining a class in a function is usually
+# a bad idea, because of memory leaks, in test functions
+# it should probably be ok.
+# See issue #21
 """Test seashore.executor"""
 
+import os
 import unittest
 
 import attr
@@ -17,13 +26,19 @@ class DummyShell(object):
 
     _env = attr.ib(default=attr.Factory(dict))
 
+    _cwd = attr.ib(default="")
+
     def clone(self):
         """Return a copy of the shell"""
-        return attr.assoc(self, _env=dict(self._env))
+        return attr.evolve(self, env=dict(self._env))
 
     def setenv(self, key, value):
         """Set an environment variable"""
         self._env[key] = value
+
+    def chdir(self, path):
+        """change directory"""
+        self._cwd = os.path.join(self._cwd, path)
 
     def getenv(self, key):
         """Get an environment variable"""
@@ -77,11 +92,22 @@ class DummyShell(object):
             return 'everything', ''
         if args == ('do-stuff special --verbosity 5'.split(),):
             return 'doing stuff very specially', ''
+        if args == ('do-stuff special --verbose'.split(),):
+            return 'doing stuff slightly more verbosely', ''
         if (len(args) == 1 and args[0][:2] == 'chat mention'.split() and
                 args[0][2] == '--person' and
                 args[0][4] == '--person' and
                 set([args[0][3], args[0][5]]) == set(['emett', 'lucy'])):
             return 'mentioning folks', ''
+        if args == (['pwd'],):
+            return self._cwd, ''
+        if args == ('docker exec 3433 echo yay'.split(),):
+            return 'yay\r\n', ''
+        if (args[0][:2] == 'git show'.split() and
+                '--no-patch' in args[0] and
+                '--format=%ct' in args[0] and
+                len(args[0]) == 4):
+            return '1496798292', ''
         raise ValueError(self, args, kwargs)
 
     def interactive(self, *args, **kwargs):
@@ -111,6 +137,11 @@ class ExecutorTest(unittest.TestCase):
         """build an executor with a dummy shell"""
         self.shell = DummyShell()
         self.executor = executor.Executor(self.shell)
+
+    def test_eq(self):
+        """forcing eq yields equals-style option"""
+        out, _err = self.executor.git.show(no_patch=None, format=executor.Eq('%ct')).batch()
+        self.assertEquals(out, '1496798292')
 
     def test_redirect(self):
         """redirecting output and error"""
@@ -190,6 +221,11 @@ class ExecutorTest(unittest.TestCase):
                                                                    SONG='awesome')).batch()
         self.assertEquals(output, 'everything')
 
+    def test_none(self):
+        """prepare with None option gives undecorated"""
+        output, _err = self.executor.prepare('do-stuff', 'special', verbose=None).batch()
+        self.assertEquals(output, 'doing stuff slightly more verbosely')
+
     def test_int(self):
         """prepare with int option stringifies the int"""
         output, _err = self.executor.prepare('do-stuff', 'special', verbosity=5).batch()
@@ -199,3 +235,16 @@ class ExecutorTest(unittest.TestCase):
         """prepare with list option explodes into a list of options"""
         output, _err = self.executor.prepare('chat', 'mention', person=['emett', 'lucy']).batch()
         self.assertEquals(output, 'mentioning folks')
+
+    def test_chdir(self):
+        """changing directory changes the working directory"""
+        new_executor = self.executor.chdir('foo/bar')
+        output, _err = self.executor.command(['pwd']).batch()
+        self.assertEquals(output, '')
+        output, _err = new_executor.command(['pwd']).batch()
+        self.assertEquals(output, 'foo/bar')
+
+    def test_keyword(self):
+        """using a trailing _ protects keywords"""
+        output, _err = self.executor.docker.exec_('3433', 'echo', 'yay').batch()
+        self.assertEquals(output, 'yay\r\n')

@@ -18,9 +18,28 @@ import attr
 
 NO_VALUE = object()
 
+@attr.s(frozen=True)
+class Eq(object):
+    """Wrap a string to indicate = option
+
+    Wrap a string to indicate that the option
+    *has* to be given as '--name=value'
+    rather than the usually equivalent and
+    more automation-friendly '--name value'
+
+    :code:`git show --format`, I'm looking
+    at you.
+    """
+
+    content = attr.ib()
+
 @singledispatch.singledispatch
 def _keyword_arguments(_value, key):
     yield key
+
+@_keyword_arguments.register(Eq)
+def _keyword_arguments_eq(value, key):
+    yield key + '=' + value.content
 
 @_keyword_arguments.register(str)
 def _keyword_arguments_str(value, key):
@@ -131,7 +150,8 @@ class _ExecutoredCommand(object):
         return self._executor.prepare(self._name, *args, **kwargs)
 
     def __getattr__(self, subcommand):
-        return functools.partial(self._executor.prepare, self._name, subcommand.replace('_', '-'))
+        subcommand = subcommand.rstrip('_').replace('_', '-')
+        return functools.partial(self._executor.prepare, self._name, subcommand)
 
 @attr.s(frozen=True)
 class Executor(object):
@@ -225,8 +245,18 @@ class Executor(object):
         new_shell = self._shell.clone()
         for key, value in kwargs.items():
             new_shell.setenv(key, value)
-        return attr.assoc(self, _shell=new_shell)
+        return attr.evolve(self, shell=new_shell)
 
+    def chdir(self, path):
+        """
+        Return a new executor where the working directory is different.
+
+        :param path: new path
+        :returns: new executor with a different working directory
+        """
+        new_shell = self._shell.clone()
+        new_shell.chdir(path)
+        return attr.evolve(self, shell=new_shell)
 
     def in_virtualenv(self, envpath):
         """
