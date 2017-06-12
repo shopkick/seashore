@@ -20,6 +20,16 @@ NO_VALUE = object()
 
 @attr.s(frozen=True)
 class Eq(object):
+    """Wrap a string to indicate = option
+
+    Wrap a string to indicate that the option
+    *has* to be given as '--name=value'
+    rather than the usually equivalent and
+    more automation-friendly '--name value'
+
+    :code:`git show --format`, I'm looking
+    at you.
+    """
 
     content = attr.ib()
 
