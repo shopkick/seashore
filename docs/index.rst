@@ -63,3 +63,56 @@ API
 
 .. automodule:: seashore.shell
    :members:
+
+Release Process
+---------------
+
+In a virtual environment:
+
+.. code::
+
+    $ pip install incremental twisted click twine
+    $ git checkout master
+    $ git pull --rebase
+    $ git checkout -b new-release
+    $ python -m incremental.update --patch
+    $ git commit -a -m 'update to new version'
+    $ git push
+
+On GitHub, create Pull Request, review and merge.
+
+Then, back in the virtual environment:
+
+.. code::
+
+    $ git checkout master
+    $ git pull --rebase
+    $ pip wheel .
+    $ python setup.py sdist
+    $ twine upload seashore*.whl dist/seashore*.tar.gz
+    $ git tag v<version number>
+    $ git push --tags
+
+On GitHub, create a release. Names for next few releases:
+
+* Dimorphodon macronyx
+* Squaloraja polyspondyla
+* Coprolite
+
+We base releases on the discoveries of `Mary Anning`_ 
+who is the heroine of the tongue twister "she sells seashells by the seashore".
+
+.. _Mary Anning: https://en.wikipedia.org/wiki/Mary_Anning
+
+After releasing, make sure to avoid accidental releases:
+
+.. code::
+
+    $ git checkout master
+    $ git pull --rebase
+    $ git checkout -b make-dev
+    $ python -m incremental.update seashore --dev
+    $ git commit -a -m 'prevent accidental releases'
+    $ git push
+
+On GitHub, review and merge.
