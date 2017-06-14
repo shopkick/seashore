@@ -9,5 +9,5 @@ Provides seashore version information.
 
 from incremental import Version
 
-__version__ = Version('seashore', 17, 5, 2)
+__version__ = Version('seashore', 17, 5, 2, dev=0)
 __all__ = ["__version__"]
