@@ -109,22 +109,24 @@ class ProcessErrorTest(unittest.TestCase):
 
     def test_repr(self):
         """repr contains output, error and code"""
-        procerr = shell.ProcessError(13, "myout", "myerr")
+        procerr = shell.ProcessError(13, "myout42", "myerr42")
         stringified = repr(procerr)
         self.assertIn('13', stringified)
-        self.assertIn('myout', stringified)
-        self.assertIn('myerr', stringified)
+        self.assertIn('myout42', stringified)
+        self.assertIn('myerr42', stringified)
 
     def test_trace(self):
         """traceback has args"""
         try:
-            raise shell.ProcessError(13, "myout", "myerr")
+            raise shell.ProcessError(13, "myout8080", "myerr8080")
         except shell.ProcessError:
             trace = traceback.format_exc()
-        stringified = trace.split('\n')[-2]
+        else:
+            self.assertTrue(False, "did not raise an error")
+        stringified = trace.splitlines()[-2]
         self.assertIn('13', stringified)
-        self.assertIn('myout', stringified)
-        self.assertIn('myerr', stringified)
+        self.assertIn('myout8080', stringified)
+        self.assertIn('myerr8080', stringified)
 
 
 class AutoexitTest(unittest.TestCase):
