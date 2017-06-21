@@ -30,7 +30,9 @@ class ProcessError(Exception):
             self.error = args[1]
 
     def __repr__(self):
-        return 'ProcessError({})'.format(repr(self._args))
+        return 'ProcessError{}'.format(repr(self._args))
+
+    __str__ = __repr__
 
     def __getitem__(self, i):
         return self._args[i]

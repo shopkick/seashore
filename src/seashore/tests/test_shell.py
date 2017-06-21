@@ -5,6 +5,7 @@
 import sys
 import tempfile
 import unittest
+import traceback
 
 from seashore import shell
 
@@ -113,6 +114,18 @@ class ProcessErrorTest(unittest.TestCase):
         self.assertIn('13', stringified)
         self.assertIn('myout', stringified)
         self.assertIn('myerr', stringified)
+
+    def test_trace(self):
+        """traceback has args"""
+        try:
+            raise shell.ProcessError(13, "myout", "myerr")
+        except shell.ProcessError:
+            trace = traceback.format_exc()
+        stringified = trace.split('\n')[-2]
+        self.assertIn('13', stringified)
+        self.assertIn('myout', stringified)
+        self.assertIn('myerr', stringified)
+
 
 class AutoexitTest(unittest.TestCase):
 
