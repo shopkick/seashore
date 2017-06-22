@@ -121,8 +121,6 @@ class ProcessErrorTest(unittest.TestCase):
             raise shell.ProcessError(13, "myout8080", "myerr8080")
         except shell.ProcessError:
             trace = traceback.format_exc()
-        else:
-            self.assertTrue(False, "did not raise an error")
         stringified = trace.splitlines()[-2]
         self.assertIn('13', stringified)
         self.assertIn('myout8080', stringified)
