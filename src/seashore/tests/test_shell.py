@@ -95,6 +95,14 @@ class ShellTest(unittest.TestCase):
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
         self.assertEquals(out, b'lucy')
 
+    def test_env_none(self):
+        """passing env variable as none deletes it"""
+        self.shell.setenv('SPECIAL', 'lucy')
+        self.shell.setenv('SPECIAL', None)
+        python_script = b'import sys,os;sys.stdout.write(os.environ.get("SPECIAL", "emett"))'
+        out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
+        self.assertEquals(out, b'emett')
+
 class ProcessErrorTest(unittest.TestCase):
 
     """Tests that check process error is useful"""
