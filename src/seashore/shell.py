@@ -139,6 +139,10 @@ class Shell(object):
         :param key: name of variable
         :param value: value of variable
         """
+        if val == None:
+            if key in self._env:
+                del self._env[key]
+            return
         key = str(key)  # keys must be strings
         val = str(val)  # vals must be strings
         self._env[key] = val
