@@ -96,6 +96,7 @@ class ShellTest(unittest.TestCase):
         self.assertEquals(out, b'lucy')
 
     def test_env_none(self):
+        """passing env variable as none deletes it"""
         self.shell.setenv('SPECIAL', 'lucy')
         self.shell.setenv('SPECIAL', None)
         python_script = b'import sys,os;sys.stdout.write(os.environ.get("SPECIAL", "emett"))'

@@ -139,7 +139,7 @@ class Shell(object):
         :param key: name of variable
         :param value: value of variable
         """
-        if val == None:
+        if val is None:
             if key in self._env:
                 del self._env[key]
             return
