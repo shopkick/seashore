@@ -172,7 +172,7 @@ class Executor(object):
 
     _shell = attr.ib()
     _pypi = attr.ib(default=None)
-    _commands = attr.ib(default=attr.Factory(set), convert=set)
+    _commands = attr.ib(default=attr.Factory(set), converter=set)
 
     git = Command('git')
     pip = Command('pip')
