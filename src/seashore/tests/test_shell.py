@@ -27,8 +27,8 @@ class ShellTest(unittest.TestCase):
             out = stdout.read()
             stderr.seek(0)
             err = stderr.read()
-        self.assertEquals(out, b'hello')
-        self.assertEquals(err, b'goodbye')
+        self.assertEqual(out, b'hello')
+        self.assertEqual(err, b'goodbye')
 
     def test_failed_redirect(self):
         """redirect sends output to temp file and raises if it fails"""
@@ -42,15 +42,15 @@ class ShellTest(unittest.TestCase):
             out = stdout.read()
             stderr.seek(0)
             err = stderr.read()
-        self.assertEquals(out, b'hello')
-        self.assertEquals(err, b'goodbye')
+        self.assertEqual(out, b'hello')
+        self.assertEqual(err, b'goodbye')
 
     def test_batch(self):
         """batch mode returns contents of stdout/stderr from subprocesses"""
         python_script = "import sys;sys.stdout.write('hello');sys.stderr.write('goodbye')"
         out, err = self.shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, b'hello')
-        self.assertEquals(err, b'goodbye')
+        self.assertEqual(out, b'hello')
+        self.assertEqual(err, b'goodbye')
 
     def test_failed_batch(self):
         """processes exiting with non-zero code causes an exception in batch mode"""
@@ -69,15 +69,15 @@ class ShellTest(unittest.TestCase):
         self.shell.setenv('SPECIAL', 'emett')
         python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
         out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, b'emett')
-        self.assertEquals(self.shell.getenv('SPECIAL'), 'emett')
+        self.assertEqual(out, b'emett')
+        self.assertEqual(self.shell.getenv('SPECIAL'), 'emett')
 
     def test_chdir(self):
         """changing the shell's directory effects the cwd of processes it runs"""
         self.shell.chdir('/')
         python_script = b'import sys,os;sys.stdout.write(os.getcwd())'
         out, _ignored = self.shell.batch([sys.executable, b'-c', python_script])
-        self.assertEquals(out, b'/')
+        self.assertEqual(out, b'/')
 
     def test_reaper(self):
         """killing a process terminates it with a negative signal"""
@@ -93,7 +93,7 @@ class ShellTest(unittest.TestCase):
         self.shell.setenv('SPECIAL', 'emett')
         python_script = b'import sys,os;sys.stdout.write(os.environ["SPECIAL"])'
         out, _ignored = new_shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, b'lucy')
+        self.assertEqual(out, b'lucy')
 
     def test_env_none(self):
         """passing env variable as none deletes it"""
@@ -101,7 +101,7 @@ class ShellTest(unittest.TestCase):
         self.shell.setenv('SPECIAL', None)
         python_script = b'import sys,os;sys.stdout.write(os.environ.get("SPECIAL", "emett"))'
         out, _ignored = self.shell.batch([sys.executable, '-c', python_script])
-        self.assertEquals(out, b'emett')
+        self.assertEqual(out, b'emett')
 
 class ProcessErrorTest(unittest.TestCase):
 
@@ -109,11 +109,11 @@ class ProcessErrorTest(unittest.TestCase):
 
     def test_returncode(self):
         """returncode attribtue is set to passed-in value"""
-        self.assertEquals(shell.ProcessError(13).returncode, 13)
+        self.assertEqual(shell.ProcessError(13).returncode, 13)
 
     def test_output(self):
         """output attribtue is set to passed-in value"""
-        self.assertEquals(shell.ProcessError(13, "woo").output, "woo")
+        self.assertEqual(shell.ProcessError(13, "woo").output, "woo")
 
     def test_repr(self):
         """repr contains output, error and code"""

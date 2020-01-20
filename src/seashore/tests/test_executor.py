@@ -141,7 +141,7 @@ class ExecutorTest(unittest.TestCase):
     def test_eq(self):
         """forcing eq yields equals-style option"""
         out, _err = self.executor.git.show(no_patch=None, format=executor.Eq('%ct')).batch()
-        self.assertEquals(out, '1496798292')
+        self.assertEqual(out, '1496798292')
 
     def test_redirect(self):
         """redirecting output and error"""
@@ -150,8 +150,8 @@ class ExecutorTest(unittest.TestCase):
     def test_underscore(self):
         """underscore is converted to a dash"""
         out, err = self.executor.git.rev_parse('HEAD').batch()
-        self.assertEquals(out, '777')
-        self.assertEquals(err, '')
+        self.assertEqual(out, '777')
+        self.assertEqual(err, '')
 
     def test_in_docker_machine(self):
         """calling in_docker_machine returns an executor that runs docker pointed at the machine"""
@@ -159,48 +159,48 @@ class ExecutorTest(unittest.TestCase):
         output, _err = new_executor.docker.run('a-machine:a-tag', remove=executor.NO_VALUE,
                                                interactive=executor.NO_VALUE,
                                                terminal=executor.NO_VALUE).batch()
-        self.assertEquals(output, 'hello\r\n')
+        self.assertEqual(output, 'hello\r\n')
 
     def test_in_virtualenv(self):
         """calling in_virtualenv returns an executor that runs pip in a virtual env"""
         new_executor = self.executor.in_virtualenv('/appenv')
         output, _err = new_executor.pip.install('a-local-package').batch()
-        self.assertEquals(output, 'a-local-package installed')
+        self.assertEqual(output, 'a-local-package installed')
         new_executor_one = self.executor.patch_env(PATH='/bin')
         new_executor_two = new_executor_one.in_virtualenv('/appenv')
         output, _err = new_executor_two.pip.install('a-local-package').batch()
-        self.assertEquals(output, 'a-local-package installed')
+        self.assertEqual(output, 'a-local-package installed')
 
     def test_call(self):
         """calling a built-in command runs it in the shell"""
         output, _error = self.executor.pip('install', 'attrs').batch()
-        self.assertEquals(output, 'attrs installed')
+        self.assertEqual(output, 'attrs installed')
 
     def test_arbitrary(self):
         """adding an arbitrary command allows access via attribute"""
         self.executor.add_command('apt_get')
         output, _error = self.executor.apt_get.update().batch()
-        self.assertEquals(output, 'update finished successfully')
+        self.assertEqual(output, 'update finished successfully')
 
     def test_command(self):
         """using the command method passes the arguments directly to the shell"""
         output, _error = self.executor.command(['echo', 'hello']).batch()
-        self.assertEquals(output, 'hello\n')
+        self.assertEqual(output, 'hello\n')
 
     def test_pip_install(self):
         """calling pip_install() runs 'pip install'"""
         output, _error = self.executor.pip_install(['attrs'])
-        self.assertEquals(output, 'attrs installed')
+        self.assertEqual(output, 'attrs installed')
 
     def test_pip_install_index(self):
         """passing the index_url param to pip_install passes it to the pip install command"""
         output, _error = self.executor.pip_install(['attrs'], index_url='http://orbifold.xyz')
-        self.assertEquals(output, 'attrs installed from orbifold')
+        self.assertEqual(output, 'attrs installed from orbifold')
 
     def test_conda_install(self):
         """the conda_install() method calls 'conda install'"""
         output, _error = self.executor.conda_install(['numpy'])
-        self.assertEquals(output, 'numpy installed')
+        self.assertEqual(output, 'numpy installed')
 
     def test_interactive(self):
         """interactive mode does not fail"""
@@ -219,32 +219,32 @@ class ExecutorTest(unittest.TestCase):
         """prepare with dict value explodes the dict"""
         output, _err = self.executor.docker.run('lego:1', env=dict(SPECIAL='emett',
                                                                    SONG='awesome')).batch()
-        self.assertEquals(output, 'everything')
+        self.assertEqual(output, 'everything')
 
     def test_none(self):
         """prepare with None option gives undecorated"""
         output, _err = self.executor.prepare('do-stuff', 'special', verbose=None).batch()
-        self.assertEquals(output, 'doing stuff slightly more verbosely')
+        self.assertEqual(output, 'doing stuff slightly more verbosely')
 
     def test_int(self):
         """prepare with int option stringifies the int"""
         output, _err = self.executor.prepare('do-stuff', 'special', verbosity=5).batch()
-        self.assertEquals(output, 'doing stuff very specially')
+        self.assertEqual(output, 'doing stuff very specially')
 
     def test_list(self):
         """prepare with list option explodes into a list of options"""
         output, _err = self.executor.prepare('chat', 'mention', person=['emett', 'lucy']).batch()
-        self.assertEquals(output, 'mentioning folks')
+        self.assertEqual(output, 'mentioning folks')
 
     def test_chdir(self):
         """changing directory changes the working directory"""
         new_executor = self.executor.chdir('foo/bar')
         output, _err = self.executor.command(['pwd']).batch()
-        self.assertEquals(output, '')
+        self.assertEqual(output, '')
         output, _err = new_executor.command(['pwd']).batch()
-        self.assertEquals(output, 'foo/bar')
+        self.assertEqual(output, 'foo/bar')
 
     def test_keyword(self):
         """using a trailing _ protects keywords"""
         output, _err = self.executor.docker.exec_('3433', 'echo', 'yay').batch()
-        self.assertEquals(output, 'yay\r\n')
+        self.assertEqual(output, 'yay\r\n')
